@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row">
+        <!-- cell (0, 0) ============================================ -->
+        <div class="col">
+            <legend>Definir condiciones de fragmentacion</legend>
+
+            <form class="form-inline" method="POST" action="{{ url_for('horizontal') }}">
+
+                Leer relacion:
+
+                <select name="sel-relation" id="" class="custom-select mr-sm-2">
+                    <!-- <option value="a">a</option> -->
+                    {% for r in relations %}
+                    <option value="{{ r.0 }}">{{ r.0 }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-default">Go</button>
+            </form>
+
+            <br>
+            <br>
+
+            <div class="container-fluid">
+                <div class="row flex-row flex-nowrap">
+                    <ul class="list-group list-group-horizontal">
+                        <!-- <li class="list-group-item">Cras justo odio</li> -->
+                        {% for r in relations %}
+                        <li class="list-group-item">{{ r.0 }}</option>
+                            {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- cell (0, 1) ============================================ -->
+        <div class="col">
+            <legend>Generar fragmentos miniterminos</legend>
+            <div class="form-group">
+                <label for="exampleFormControlTextarea1">Large textarea</label>
+                <textarea class="form-control rounded-0" id="exampleFormControlTextarea1" rows="10"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <br>
+
+    <div class="row">
+        <!-- cell (1, 0) ====================================================== -->
+        <div class="col">
+            <legend>Definir predicados simples</legend>
+
+            Atributo:
+            <select class="custom-select mr-sm-2">
+                <!-- <option value="a">a</option> -->
+                {% if relation_attr %}
+                {% for attr in relation_attr %}
+                <option value="{{attr.0}}">{{attr.0}}</option>
+                {% endfor %}
+                {% endif %}
+            </select>
+
+            <br>
+            <br>
+
+            Operador:
+            <select class="custom-select mr-sm-2">
+                <!-- <option value="a">a</option> -->
+                <option value="like">like</option>
+                <option value="=">=</option>
+                <option value="<">
+                    <</option> <option value="<=">
+                        <=</option> <option value=">">>
+                </option>
+                <option value="!=">!=</option>
+            </select>
+
+            <br>
+            <br>
+
+            <label for="inputValue">Valor </label>
+            <input type="text" class="form-control" id="inputValue" placeholder="Ponga el valor">
+
+        </div>
+        <div class="col">
+            <legend>Colocar fragmentos miniterminos</legend>
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Asperiores magnam ipsa, vel saepe animi voluptatum
+            nobis maiores quidem laborum itaque esse quibusdam? Sequi consectetur debitis maxime quia enim dolore
+            pariatur.
+        </div>
+    </div>
+</div>
+{% endblock %}
