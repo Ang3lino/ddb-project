@@ -5,6 +5,8 @@ app = Flask(__name__)
 
 from flaskext.mysql import MySQL 
 
+app.config['SECRET_KEY'] = 'mysecretkey' # u r suppossed to be the only who knows this
+
 # https://stackoverflow.com/questions/9845102/using-mysql-in-flaromk
 mysql = MySQL()
 app.config['MYSQL_DATABASE_USER'] = 'root'
@@ -16,6 +18,8 @@ mysql.init_app(app)
 conn = mysql.connect()
 cursor = conn.cursor()
 
+# TODO
+# https://stackoverflow.com/questions/19794695/flask-python-buttons
 
 @app.route('/', methods=['GET', 'POST'])
 def horizontal():
