@@ -10,18 +10,19 @@
 
       <form class="form-inline" method="POST" action="{{ url_for('horizontal') }}">
 
-        Leer relacion:
-
-        <select name="sel-relation" id="" class="custom-select mr-sm-2">
-          <!-- <option value="a">a</option> -->
-          {% for r in relations %}
-          <option value="{{ r.0 }}">{{ r.0 }}</option>
-          {% endfor %}
-        </select>
-        <button type="submit" class="btn btn-secondary">Cargar relacion</button>
+        <div class="form-group">
+          Leer relacion:
+          <!-- <label for="relation">Relacion </label> -->
+          <select name="sel-relation" id="relation" class="custom-select mr-sm-2">
+            <!-- <option value="a">a</option> -->
+            {% for r in relations %}
+            <option value="{{ r.0 }}">{{ r.0 }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn btn-secondary">Cargar relacion</button>
+        </div>
       </form>
 
-      <br>
       <br>
 
       <div class="container-fluid">
@@ -39,54 +40,80 @@
     <!-- cell (0, 1) ========================================================== -->
     <div class="col">
       <legend>Generar fragmentos miniterminos</legend>
-      <div class="form-group">
+      <!-- <div class="form-group">
         <label for="exampleFormControlTextarea1">Large textarea</label>
         <textarea class="form-control rounded-0" id="exampleFormControlTextarea1" rows="3"></textarea>
-      </div>
+      </div> -->
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Predicado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- <tr>
+            <th scope="row">1</th>
+            <td>a gt b</td>
+          </tr> -->
+        </tbody>
+      </table>
     </div>
   </div>
 
   <br>
 
   <div class="row">
-    <!-- cell (1, 0) ====================================================== -->
     <div class="col">
+      <!-- cell (1, 0) ============================================================= -->
       <legend>Definir predicados simples</legend>
 
       <form action="">
-        <div class="form-group">
-          Atributo:
-          <select class="custom-select mr-sm-2">
-            <!-- <option value="a">a</option> -->
-            {% if relation_attr %}
-            {% for attr in relation_attr %}
-            <option value="{{attr.0}}">{{attr.0}}</option>
-            {% endfor %}
-            {% endif %}
-          </select>
-        </div>
+        <div class="form-row">
+          <!-- attributes ------------------------------------------------------ -->
+          <div class="col">
+            Atributo:
+            <select class="custom-select mr-sm-2" name="sel-attribute">
+              <!-- <option value="a">a</option> -->
+              {% if relation_attr %}
+              {% for attr in relation_attr %}
+              <option value="{{attr.0}}">{{attr.0}}</option>
+              {% endfor %}
+              {% endif %}
+            </select>
+          </div>
 
-        <!-- Operators ============================================================= -->
-        <div class="form-group">
-          Operador:
-          <select class="custom-select mr-sm-2">
-            <option value="=">=</option>
-            <option value="<"><</option> <option value="<=">
-            <=</option> <option value=">">>
-            </option>
-            <option value=">=">>=</option>
-            <option value="<>">
-              <>
-            </option>
-          </select>
-        </div>
+          <!-- Operators ------------------------------------------------------ -->
+          <div class="col">
+            Operador:
+            <select class="custom-select mr-sm-2" name="sel-operator">
+              <option value="=">=</option>
+              <option value="<">
+                <</option> <option value="<=">
+                  <=</option> <option value=">">>
+              </option>
+              <option value=">=">>=</option>
+              <option value="<>">
+                <>
+              </option>
+            </select>
+          </div>
 
-        <div class="form-group">
-          <label for="inputValue">Valor </label>
-          <input type="text" class="form-control" id="inputValue" placeholder="Ponga el valor">
+          <div class="col">
+            <!-- more code if you perform label for...  -->
+            <!-- <label for="inputValue">Valor </label> -->
+            Valor:
+            <input type="text" class="form-control" id="inputValue" 
+                placeholder="Ponga el valor" name="in-value">
+          </div>
+
+          <button type="submit" class="btn btn-secondary btn-sm">Agregar predicado</button>
+
         </div>
       </form>
     </div>
+
+
     <div class="col">
       <legend>Colocar fragmentos miniterminos</legend>
       Lorem ipsum dolor sit amet, consectetur adipisicing elit. Asperiores magnam ipsa, vel saepe animi voluptatum

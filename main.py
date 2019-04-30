@@ -28,8 +28,7 @@ def horizontal():
         relation_attr = cursor.fetchall()
         return render_template('horizontal.html', relations=relations, 
             relation_attr=relation_attr)
-    return render_template('horizontal.html', relations=relations, 
-        relation_attr=False)
+    return render_template('horizontal.html', relations=relations, relation_attr=False)
 
 if __name__ == "__main__":
     app.run(debug=True)
