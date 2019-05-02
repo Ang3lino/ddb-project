@@ -8,8 +8,7 @@
     <div class="col">
       <legend>Definir condiciones de fragmentacion</legend>
 
-      <form class="form-inline" method="POST" action="{{ url_for('horizontal') }}">
-
+      <form class="form-inline" method="POST" action="{{ url_for('horizontal') }}" id="form-select-relation">
         <div class="form-group">
           Leer relacion:
           <!-- <label for="relation">Relacion </label> -->
@@ -19,7 +18,7 @@
             <option value="{{ r.0 }}">{{ r.0 }}</option>
             {% endfor %}
           </select>
-          <button type="submit" class="btn btn-secondary">Cargar relacion</button>
+          <input type="submit" class="btn btn-secondary" name="id-load-relation" value="Cargar relacion" />
         </div>
       </form>
 
@@ -52,10 +51,18 @@
           </tr>
         </thead>
         <tbody>
-          <!-- <tr>
+          <!-- 
+          <tr>
             <th scope="row">1</th>
             <td>a gt b</td>
-          </tr> -->
+          </tr> 
+          -->
+          {% if predicate %}
+          <tr>
+            <th scope="row">1</th>
+            <td>{{ predicate }}</td>
+          </tr>
+          {% endif %}
         </tbody>
       </table>
     </div>
@@ -68,7 +75,7 @@
       <!-- cell (1, 0) ============================================================= -->
       <legend>Definir predicados simples</legend>
 
-      <form action="">
+      <form action="{{ url_for('horizontal') }}" method="POST">
         <div class="form-row">
           <!-- attributes ------------------------------------------------------ -->
           <div class="col">
@@ -103,12 +110,10 @@
             <!-- more code if you perform label for...  -->
             <!-- <label for="inputValue">Valor </label> -->
             Valor:
-            <input type="text" class="form-control" id="inputValue" 
-                placeholder="Ponga el valor" name="in-value">
+            <input type="text" class="form-control" id="inputValue" placeholder="Ponga el valor" name="txt-value">
           </div>
 
-          <button type="submit" class="btn btn-secondary btn-sm">Agregar predicado</button>
-
+          <input type="submit" class="btn btn-secondary btn-sm" name="id-add-predicate" value="Agregar predicado" />
         </div>
       </form>
     </div>

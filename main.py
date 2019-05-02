@@ -2,12 +2,11 @@ from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
-
 from flaskext.mysql import MySQL 
 
-app.config['SECRET_KEY'] = 'mysecretkey' # u r suppossed to be the only who knows this
+app.config['SECRET_KEY'] = 'mysecretkey' # this also enables session
 
-# https://stackoverflow.com/questions/9845102/using-mysql-in-flaromk
+# Mysql config
 mysql = MySQL()
 app.config['MYSQL_DATABASE_USER'] = 'root'
 app.config['MYSQL_DATABASE_PASSWORD'] = 'root'
@@ -18,21 +17,26 @@ mysql.init_app(app)
 conn = mysql.connect()
 cursor = conn.cursor()
 
-# TODO
-# https://stackoverflow.com/questions/19794695/flask-python-buttons
-
 @app.route('/', methods=['GET', 'POST'])
 def horizontal():
     cursor.execute("SHOW TABLES")
     relations = cursor.fetchall() # tuple of tuples
 
-    relation_sel = request.form.get('sel-relation')
-    if relation_sel != None:
+    relation_attr = False
+    predicate = False
+
+    if request.method == 'POST':
+        # if 'id-load-relation' in request.form:
+        relation_sel = request.form.get('sel-relation', relations[0][0]) # second argument as default, from the first relation, get the name
         cursor.execute("DESC {}".format(relation_sel))
         relation_attr = cursor.fetchall()
-        return render_template('horizontal.html', relations=relations, 
-            relation_attr=relation_attr)
-    return render_template('horizontal.html', relations=relations, relation_attr=False)
+        if 'id-add-predicate' in request.form: # determines which form was submitted
+            attribute = request.form.get('sel-attribute')           
+            operator = request.form.get('sel-operator')
+            value = request.form.get('txt-value')
+            predicate = ' '.join((attribute, operator, value)) # second argument must be an iterable object
+    return render_template('horizontal.html', relations=relations, relation_attr=relation_attr, 
+            predicate=predicate)
 
 if __name__ == "__main__":
     app.run(debug=True)
