@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, session
+from pyclasses.predicate import Predicate
 
 app = Flask(__name__)
 
@@ -46,11 +47,11 @@ def horizontal():
             attribute = request.form.get('sel-attribute')           
             operator = request.form.get('sel-operator')
             value = request.form.get('txt-value')
-            predicates.add( (attribute, operator, value) )
+            predicates.add( Predicate(attribute, operator, value) )
         if "id-build-minterms" in request.form:
             minterm_predicates = [ ]
             for p in predicates:
-                minterm_predicates.extend(( predicate_as_str(p), negate_predicate(predicate_as_str(p)) ))
+                minterm_predicates.extend(( str(p), p.negate())) 
 
     return render_template( 'horizontal.html', relations=relations, relation_attr=relation_attr, 
             selected_relation=selected_relation, minterm_predicates=minterm_predicates,
