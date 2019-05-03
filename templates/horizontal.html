@@ -13,7 +13,9 @@
           Leer relacion:
           <!-- <label for="relation">Relacion </label> -->
           <select name="sel-relation" id="relation" class="custom-select mr-sm-2">
-            <!-- <option value="a">a</option> -->
+            {% if selected_relation %}
+            <option selected>{{ selected_relation }}</option>
+            {% endif %}
             {% for r in relations %}
             <option value="{{ r.0 }}">{{ r.0 }}</option>
             {% endfor %}
@@ -38,34 +40,34 @@
 
     <!-- cell (0, 1) ========================================================== -->
     <div class="col">
-      <legend>Generar fragmentos miniterminos</legend>
-      <!-- <div class="form-group">
-        <label for="exampleFormControlTextarea1">Large textarea</label>
-        <textarea class="form-control rounded-0" id="exampleFormControlTextarea1" rows="3"></textarea>
-      </div> -->
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">#</th>
-            <th scope="col">Predicado</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- 
-          <tr>
-            <th scope="row">1</th>
-            <td>a gt b</td>
-          </tr> 
-          -->
-          {% if predicate %}
-          <tr>
-            <th scope="row">1</th>
-            <td>{{ predicate }}</td>
-          </tr>
-          {% endif %}
-        </tbody>
-      </table>
+
+      <legend>Colocar fragmentos miniterminos</legend>
+
+      <form action="{{ url_for('horizontal') }}" method="POST">
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Predicado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in predicates %}
+            <tr>
+              <th scope="row">{{ p.0 }}</th>
+              <td>{{ p.1 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <input type="submit" class="btn btn-secondary" name="id-build-minterms" value="Generar miniterminos" />
+
+      </form>
+
     </div>
+
   </div>
 
   <br>
@@ -77,20 +79,18 @@
 
       <form action="{{ url_for('horizontal') }}" method="POST">
         <div class="form-row">
-          <!-- attributes ------------------------------------------------------ -->
+          <!-- attributes ..................................................... -->
+
           <div class="col">
             Atributo:
             <select class="custom-select mr-sm-2" name="sel-attribute">
-              <!-- <option value="a">a</option> -->
-              {% if relation_attr %}
               {% for attr in relation_attr %}
               <option value="{{attr.0}}">{{attr.0}}</option>
               {% endfor %}
-              {% endif %}
             </select>
           </div>
 
-          <!-- Operators ------------------------------------------------------ -->
+          <!-- Operators ...................................................... -->
           <div class="col">
             Operador:
             <select class="custom-select mr-sm-2" name="sel-operator">
@@ -118,12 +118,33 @@
       </form>
     </div>
 
-
+    <!-- cell (1, 1) ============================================================================ -->
     <div class="col">
-      <legend>Colocar fragmentos miniterminos</legend>
-      Lorem ipsum dolor sit amet, consectetur adipisicing elit. Asperiores magnam ipsa, vel saepe animi voluptatum
-      nobis maiores quidem laborum itaque esse quibusdam? Sequi consectetur debitis maxime quia enim dolore
-      pariatur.
+      <legend>Generar fragmentos miniterminos</legend>
+      <!-- <div class="form-group">
+        <label for="exampleFormControlTextarea1">Large textarea</label>
+        <textarea class="form-control rounded-0" id="exampleFormControlTextarea1" rows="3"></textarea>
+      </div> -->
+      <form action="{{ url_for('horizontal') }}">
+        <div class="form-group">
+
+          <table class="table table-striped">
+            <thead class="thead-dark">
+              <tr>
+                <th scope="col">Predicado minitermino</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for mp in minterm_predicates %}
+                <tr>
+                  <th scope="row"> {{ mp }} </th>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </form>
+
     </div>
   </div>
 </div>
