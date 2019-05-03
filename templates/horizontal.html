@@ -39,42 +39,8 @@
     </div>
 
     <!-- cell (0, 1) ========================================================== -->
+
     <div class="col">
-
-      <legend>Colocar fragmentos miniterminos</legend>
-
-      <form action="{{ url_for('horizontal') }}" method="POST">
-
-        <table class="table">
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Predicado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for p in predicates %}
-            <tr>
-              <th scope="row">{{ p.0 }}</th>
-              <td>{{ p.1 }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-
-        <input type="submit" class="btn btn-secondary" name="id-build-minterms" value="Generar miniterminos" />
-
-      </form>
-
-    </div>
-
-  </div>
-
-  <br>
-
-  <div class="row">
-    <div class="col">
-      <!-- cell (1, 0) ============================================================= -->
       <legend>Definir predicados simples</legend>
 
       <form action="{{ url_for('horizontal') }}" method="POST">
@@ -118,13 +84,50 @@
       </form>
     </div>
 
+
+  </div>
+
+  <br>
+
+  <div class="row">
+    <!-- cell (1, 0) ============================================================= -->
+
+    <div class="col">
+
+      <legend>Colocar fragmentos miniterminos</legend>
+
+      <form action="{{ url_for('horizontal') }}" method="POST">
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Predicado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in predicates %}
+            <tr>
+              <th scope="row">{{ p.0 }}</th>
+              <td>{{ p.1 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <input type="submit" class="btn btn-secondary" name="id-build-minterms" value="Generar miniterminos" />
+
+      </form>
+
+    </div>
+
     <!-- cell (1, 1) ============================================================================ -->
     <div class="col">
       <legend>Generar fragmentos miniterminos</legend>
       <!-- <div class="form-group">
-        <label for="exampleFormControlTextarea1">Large textarea</label>
-        <textarea class="form-control rounded-0" id="exampleFormControlTextarea1" rows="3"></textarea>
-      </div> -->
+          <label for="exampleFormControlTextarea1">Large textarea</label>
+          <textarea class="form-control rounded-0" id="exampleFormControlTextarea1" rows="3"></textarea>
+        </div> -->
       <form action="{{ url_for('horizontal') }}">
         <div class="form-group">
 
@@ -136,9 +139,9 @@
             </thead>
             <tbody>
               {% for mp in minterm_predicates %}
-                <tr>
-                  <th scope="row"> {{ mp }} </th>
-                </tr>
+              <tr>
+                <th scope="row"> {{ mp }} </th>
+              </tr>
               {% endfor %}
             </tbody>
           </table>
