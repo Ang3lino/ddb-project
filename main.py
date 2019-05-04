@@ -22,17 +22,12 @@ cursor = conn.cursor()
 cursor.execute('SHOW TABLES')
 relations = cursor.fetchall()  # relations = cursor.fetchall() # tuple of tuples
 
-predicates = set() # of (tuple(str, str, str))
+predicates = list() # of (tuple(str, str, str))
 selected_relation = relations[0][0]
 
 relation_attr = []
 minterm_predicates = []
 
-def __selected_relation():
-    pass
-
-negate_predicate = lambda predicate: '(NOT %s)' % predicate
-predicate_as_str = lambda p: ' '.join(( p[0], p[1], p[2] ))
 
 @app.route('/', methods=['GET', 'POST'])
 def horizontal():
@@ -47,15 +42,13 @@ def horizontal():
             attribute = request.form.get('sel-attribute')           
             operator = request.form.get('sel-operator')
             value = request.form.get('txt-value')
-            predicates.add( Predicate(attribute, operator, value) )
+            predicates.append( Predicate(attribute, operator, value) )
         if "id-build-minterms" in request.form:
-            minterm_predicates = [ ]
-            for p in predicates:
-                minterm_predicates.extend(( str(p), p.negate())) 
+            minterm_predicates = Predicate.minterms(predicates)
 
     return render_template( 'horizontal.html', relations=relations, relation_attr=relation_attr, 
             selected_relation=selected_relation, minterm_predicates=minterm_predicates,
-            predicates=tuple( ( i, predicate_as_str(p) ) for i, p in tuple(enumerate(predicates)) ) )
+            predicates=tuple( ( i, str(p) ) for i, p in tuple(enumerate(predicates)) ) )
 
 if __name__ == "__main__":
     app.run(debug=True)

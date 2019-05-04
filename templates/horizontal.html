@@ -8,9 +8,24 @@
     <div class="col">
       <legend>Definir condiciones de fragmentacion</legend>
 
+      Relaciones:
+
+      <div class="container-fluid">
+        <div class="row flex-row flex-nowrap">
+          <ul class="list-group list-group-horizontal">
+            <!-- <li class="list-group-item">Cras justo odio</li> -->
+            {% for r in relations %}
+            <li class="list-group-item">{{ r.0 }}</option>
+              {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <br>
+
       <form class="form-inline" method="POST" action="{{ url_for('horizontal') }}" id="form-select-relation">
         <div class="form-group">
-          Leer relacion:
+          Leer relacion
           <!-- <label for="relation">Relacion </label> -->
           <select name="sel-relation" id="relation" class="custom-select mr-sm-2">
             {% if selected_relation %}
@@ -24,18 +39,6 @@
         </div>
       </form>
 
-      <br>
-
-      <div class="container-fluid">
-        <div class="row flex-row flex-nowrap">
-          <ul class="list-group list-group-horizontal">
-            <!-- <li class="list-group-item">Cras justo odio</li> -->
-            {% for r in relations %}
-            <li class="list-group-item">{{ r.0 }}</option>
-              {% endfor %}
-          </ul>
-        </div>
-      </div>
     </div>
 
     <!-- cell (0, 1) ========================================================== -->
@@ -98,7 +101,7 @@
 
       <form action="{{ url_for('horizontal') }}" method="POST">
 
-        <table class="table">
+        <table class="table table-striped">
           <thead>
             <tr>
               <th scope="col">#</th>
@@ -131,7 +134,7 @@
       <form action="{{ url_for('horizontal') }}">
         <div class="form-group">
 
-          <table class="table table-striped">
+          <table class="table table-sm">
             <thead class="thead-dark">
               <tr>
                 <th scope="col">Predicado minitermino</th>
@@ -145,6 +148,18 @@
               {% endfor %}
             </tbody>
           </table>
+        </div>
+
+        <div class="form-group">
+          <select name="sel-site" class="custom-select mr-sm-2">
+            <option value="ip1">S1</option>
+            <option value="ip2">S2</option>
+            <option value="ip3">S3</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <input type="submit" class="btn btn-secondary" name="id-send-site" value="Enviar" />
         </div>
       </form>
 
