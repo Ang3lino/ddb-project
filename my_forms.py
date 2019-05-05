@@ -1,9 +1,8 @@
 
 from flask_wtf import FlaskForm
-from wtforms import SelectField, StringField, SubmitField
+from wtforms import SelectField, StringField, SubmitField, SelectMultipleField
 
-class SelectRelationForm(FlaskForm):
-    def __init__(self, relations):
-        """ relations: list<tuple>
-        """
-        self.relations = SelectField('Relacion', relations) 
+class ProjectionForm(FlaskForm):
+    relation = SelectField('Seleccione una relacion ', choices=[])
+    fragment_count = StringField('Numero de fragmentos ')
+    selected_attributes = SelectMultipleField(label='Seleccione atributos ', choices=[])

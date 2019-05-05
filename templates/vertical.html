@@ -4,7 +4,56 @@
 
 <div class="container">
 
-    
+
+  <form action="" method="POST">
+    <fieldset class="form-group">
+      {{ proj_form.csrf_token }}
+
+      <legend>Agregue las selecciones</legend>
+
+      <div class="form-group">
+        {{ proj_form.relation.label }}
+        {{ proj_form.relation(class='form-control') }}
+      </div>
+
+      <div class="form-group">
+        {{ proj_form.fragment_count.label }}
+        {{ proj_form.fragment_count(class='form-control') }}
+      </div>
+
+      <div class="form-group">
+        {{ proj_form.selected_attributes.label }}
+        {{ proj_form.selected_attributes(class='form-control') }}
+      </div>
+
+      <!-- by applying btn-block in the "button" class it will expand in width  -->
+      <input type="submit" class="btn btn-primary btn-block" value="Agregar seleccion">
+    </fieldset>
+  </form>
+
+  <script>
+
+    let relation = document.getElementById('relation');
+    let availableAttributes = document.getElementById('selected_attributes');
+
+
+    String.prototype.replaceAll = function (search, replacement) {
+      var target = this;
+      return target.split(search).join(replacement);
+    };
+
+    // When the relation select field changes the attributes from this will change too
+    relation.onchange = e => {
+      let name = relation.value;
+      fetch('/relation_attributes/' + name).then(res => {
+        res.json().then(data => { // important to call json 
+          let holder = '<option value="S">S</option>', html = '';
+          data.forEach(attrInfo => html += holder.replaceAll('S', attrInfo[0]));
+          availableAttributes.innerHTML = html;
+        })
+      })
+    };
+  </script>
 
 </div>
 

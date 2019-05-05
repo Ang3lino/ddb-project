@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, jsonify
+
+from my_forms import ProjectionForm
 from pyclasses.predicate import Predicate
 
 app = Flask(__name__)
@@ -29,7 +31,36 @@ relation_attr = []
 minterm_predicates = []
 
 
+def relation_attributes(relation_name):
+    """
+    Arguments:
+        relation_name {str}
+    
+    Returns:
+        tuple(tuple()) -- returns a tuple of tuples such that every element is (Field, Type, Null, Key, Default, Extra)
+    """
+    cursor.execute(f'DESC {relation_name}')
+    return cursor.fetchall() 
+
+@app.route('/relation_attributes/<name>', methods=['POST', 'GET'])
+def json_attributes(name):
+    attrs = relation_attributes(name)
+    return jsonify(attrs)
+
 @app.route('/', methods=['GET', 'POST'])
+def vertical():
+    projection_form = ProjectionForm()
+    projection_form.relation.choices = [ (r[0], r[0]) for r in relations ]
+    projection_form.selected_attributes.choices = [ (r[0], r[0]) for r in relation_attributes(relations[0][0])]
+    
+    if projection_form.validate_on_submit():
+        relation = projection_form.relation.data
+        fragment_count = projection_form.fragment_count.data 
+        selected_attributes = projection_form.selected_attributes.data # it returns a list
+        print(relation, fragment_count, selected_attributes)
+    return render_template('vertical.html', proj_form=projection_form)
+
+@app.route('/horizontal', methods=['GET', 'POST'])
 def horizontal():
     global predicates, relation_attr, selected_relation, minterm_predicates
 
