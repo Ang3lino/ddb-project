@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, jsonify
+from flask import Flask, render_template, request, session, jsonify, flash
 
 from my_forms import ProjectionForm
 from pyclasses.predicate import Predicate
@@ -42,12 +42,42 @@ def relation_attributes(relation_name):
     cursor.execute(f'DESC {relation_name}')
     return cursor.fetchall() 
 
+def count_rows(predicate, relation_name):
+    query = f"SELECT COUNT(*) FROM {relation_name} WHERE {str(predicate)} "
+    try:
+        cursor.execute(query)
+        result = cursor.fetchall() # tuple of tuples
+        return result[0][0]
+    except:
+        flash("Hay un error sintactico en su predicado ")
+        return -1
+
+def fetch_result_set(cursor, relation_name, predicate=False):
+    query = f"SELECT * FROM {relation_name} " + (
+        f" WHERE {predicate}" if predicate else "" )
+    print(query)
+    cursor.execute(query)
+    return cursor.fetchall()
+
+def is_complete(predicates, relation_name): # complexity n ** 2 lg n
+    resultset = fetch_result_set(cursor, relation_name)
+    universe = { t: 0 for t in resultset }
+    for predicate in predicates:
+        resultset = fetch_result_set(cursor, relation_name, str(predicate))
+        for t in resultset: universe[t] += 1
+    for k in universe.keys(): print(k, ' => ', universe[k])
+    m = next(iter(universe.values())) # fetch a random value from the dict
+    return 0 < m and all(m == value for value in universe.values()) # all have the same probability to be accessed
+
+def is_minimal(predicate, relation_name):
+    return count_rows(predicate, relation_name) > 0
+
 @app.route('/relation_attributes/<name>', methods=['POST', 'GET'])
 def json_attributes(name):
     attrs = relation_attributes(name)
     return jsonify(attrs)
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/vertical', methods=['GET', 'POST'])
 def vertical():
     projection_form = ProjectionForm()
     projection_form.relation.choices = [ (r[0], r[0]) for r in relations ]
@@ -60,9 +90,19 @@ def vertical():
         print(relation, fragment_count, selected_attributes)
     return render_template('vertical.html', proj_form=projection_form)
 
-@app.route('/horizontal', methods=['GET', 'POST'])
+def horizontal_handle_add_predicate(request):
+    attribute = request.form.get('sel-attribute')           
+    operator = request.form.get('sel-operator')
+    value = request.form.get('txt-value')
+    predicate =  Predicate(attribute, operator, value) 
+    if is_minimal(predicate, selected_relation):
+        predicates.append(predicate)
+    else: 
+        flash("La seleccion sobre el predicado da conjunto vacio, no fue agregado.")
+
+@app.route('/', methods=['GET', 'POST'])
 def horizontal():
-    global predicates, relation_attr, selected_relation, minterm_predicates
+    global relation_attr, selected_relation, minterm_predicates
 
     if request.method == 'POST':
         if 'id-load-relation' in request.form:
@@ -70,11 +110,9 @@ def horizontal():
             cursor.execute( "DESC {}".format(selected_relation) )
             relation_attr = cursor.fetchall()
         if 'id-add-predicate' in request.form: # determines which form was submitted
-            attribute = request.form.get('sel-attribute')           
-            operator = request.form.get('sel-operator')
-            value = request.form.get('txt-value')
-            predicates.append( Predicate(attribute, operator, value) )
+            horizontal_handle_add_predicate(request)
         if "id-build-minterms" in request.form:
+            if is_complete(predicates, selected_relation): flash("El conjunto de predicados es completo.") 
             minterm_predicates = Predicate.minterms(predicates)
 
     return render_template( 'horizontal.html', relations=relations, relation_attr=relation_attr, 

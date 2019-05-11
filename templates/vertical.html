@@ -31,11 +31,14 @@
     </fieldset>
   </form>
 
-  <script>
+  <!--  Como se puede apreciar, son archivos estaticos, por lo que los cambios de estos solo se ven reflejados al reiniciar el servidor -->
+  <!-- <script type="text/javascript" src="{{ url_for('static', filename='vertical.js') }}"></script> -->
+  <!-- Esto tambien funciona -->
+  <!-- <script type="text/javascript" src="static/vertical.js"></script> -->
 
+  <script>
     let relation = document.getElementById('relation');
     let availableAttributes = document.getElementById('selected_attributes');
-
 
     String.prototype.replaceAll = function (search, replacement) {
       var target = this;
@@ -53,7 +56,8 @@
         })
       })
     };
-  </script>
+    
+    </script>
 
 </div>
 
