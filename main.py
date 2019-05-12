@@ -118,17 +118,19 @@ def remove_all(source, targets):
     return list( filter(lambda e: not (e in targets), source) )
 
 def horizontal_controller_handle_build_terms(predicates, selected_relation):
-    if is_complete(predicates, selected_relation): flash("El conjunto de predicados es completo.") 
-    predicates = remove_repeated_negations(predicates)
+    # if is_complete(predicates, selected_relation): flash("El conjunto de predicados es completo.") 
     minterms = []
+    predicates = remove_repeated_negations(predicates)
     for combination in filter(lambda e: len(e) > 0, all_combinations(predicates)): # remove the empty chain for all combination 
         minterms.extend(Predicate.minterms( list(combination) ))
     minterms = [ m for m in minterms if is_minimal(m, selected_relation) ] # remove non relevant minterms 
     combinations = itertools.combinations(minterms, 3) # returns an iterable object, combinations
+    result = []
     for combination in combinations:
-        if is_complete(combination, selected_relation):
-            print('DONE', combination)
-    # print(minterms)    
+        if is_complete(combination, selected_relation): 
+            print(combination)
+            result.append(str(combination))
+    return result
 
 @app.route('/', methods=['GET', 'POST'])
 def horizontal():
@@ -142,8 +144,8 @@ def horizontal():
         if 'id-add-predicate' in request.form: # determines which form was submitted
             horizontal_handle_add_predicate(request)
         if "id-build-minterms" in request.form:
-            # horizontal_controller_handle_build_terms(predicates, selected_relation)
-            horizontal_controller_handle_build_terms(
+            # minterm_predicates = horizontal_controller_handle_build_terms(predicates, selected_relation)
+            minterm_predicates = horizontal_controller_handle_build_terms(
                     [ Predicate('numero', '<', '3'), Predicate('numero', '<', '6'), 
                             Predicate('numero', '>=', '3'), Predicate('numero', '>=', '6') ], 
                     'sala_votacion')

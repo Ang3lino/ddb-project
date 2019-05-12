@@ -11,6 +11,17 @@ class Predicate():
     def negate(self):
         return '(NOT {})'.format(self.__str__())
 
+    def is_negated(self, other):
+        if self.attr == other.attr and self.val == other.val: 
+            if self.op == '=': return other.op == '<>'
+            if self.op == '<': return other.op == '>='
+            if self.op == '>': return other.op == '<='
+
+            if self.op == '<=': return other.op == '>'
+            if self.op == '>=': return other.op == '<'
+            if self.op == '<>': return other.op == '='
+        return False
+
     @staticmethod
     def minterms(predicates):
         indexes = [] # list of list, where each element from of it is { bb...b (n times) | where b = 0, 1, n = |P| }
@@ -20,6 +31,10 @@ class Predicate():
         for seq in indexes:
             minterms.append(' AND '.join(( pr[i][j] for i, j in enumerate(seq) )))
         return minterms
+
+    @staticmethod
+    def print_all(predicates):
+        for p in predicates: print(str(p))
 
 def init_indexes(indexes, seq, i, n):
     if i == n:
