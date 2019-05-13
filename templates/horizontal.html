@@ -4,16 +4,16 @@
 
 <div class="container">
   {% with messages = get_flashed_messages() %}
-    {% if messages %}
-      {% for msg in messages %}
-        <div class="alert alert-info alert-dismissible fade show" role="alert">
-          <strong> {{ msg }} </strong> 
-          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-      {% endfor %}
-    {% endif %}
+  {% if messages %}
+  {% for msg in messages %}
+  <div class="alert alert-info alert-dismissible fade show" role="alert">
+    <strong> {{ msg }} </strong>
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  {% endfor %}
+  {% endif %}
   {% endwith %}
 
   <div class="row">
@@ -36,36 +36,29 @@
 
       <br>
 
-      <form class="form-inline" method="POST" action="{{ url_for('horizontal') }}" id="form-select-relation">
-        <div class="form-group">
-          Leer relacion
-          <!-- <label for="relation">Relacion </label> -->
-          <select name="sel-relation" id="relation" class="custom-select mr-sm-2">
-            {% if selected_relation %}
-            <option selected>{{ selected_relation }}</option>
-            {% endif %}
-            {% for r in relations %}
-            <option value="{{ r.0 }}">{{ r.0 }}</option>
-            {% endfor %}
-          </select>
-          <input type="submit" class="btn btn-secondary" name="id-load-relation" value="Cargar relacion" />
-        </div>
-      </form>
+      Seleccione una relacion
+      <!-- <label for="relation">Relacion </label> -->
+      <select name="sel-relation" id="sel-relation" class="custom-select mr-sm-2">
+        {% if selected_relation %}
+        <option selected>{{ selected_relation }}</option>
+        {% endif %}
+        {% for r in relations %}
+        <option value="{{ r.0 }}">{{ r.0 }}</option>
+        {% endfor %}
+      </select>
 
     </div>
 
     <!-- cell (0, 1) ========================================================== -->
-
     <div class="col">
       <legend>Definir predicados simples</legend>
 
-      <form action="{{ url_for('horizontal') }}" method="POST">
         <div class="form-row">
           <!-- attributes ..................................................... -->
 
           <div class="col">
             Atributo:
-            <select class="custom-select mr-sm-2" name="sel-attribute">
+            <select class="custom-select mr-sm-2" name="sel-attribute" id='sel-attributes'>
               {% for attr in relation_attr %}
               <option value="{{attr.0}}">{{attr.0}}</option>
               {% endfor %}
@@ -75,7 +68,7 @@
           <!-- Operators ...................................................... -->
           <div class="col">
             Operador:
-            <select class="custom-select mr-sm-2" name="sel-operator">
+            <select class="custom-select mr-sm-2" name="sel-operator" id='sel-operator'>
               <option value="=">=</option>
               <option value="<">
                 <</option> <option value="<=">
@@ -90,14 +83,13 @@
 
           <div class="col">
             <!-- more code if you perform label for...  -->
-            <!-- <label for="inputValue">Valor </label> -->
+            <!-- <label for="input-value">Valor </label> -->
             Valor:
-            <input type="text" class="form-control" id="inputValue" placeholder="Ponga el valor" name="txt-value">
+            <input type="text" class="form-control" id="input-value" placeholder="Ponga el valor" name="txt-value">
           </div>
 
-          <input type="submit" class="btn btn-secondary btn-sm" name="id-add-predicate" value="Agregar predicado" />
+          <button class="btn btn-secondary btn-sm" name="id-add-predicate">Agregar  </button>
         </div>
-      </form>
     </div>
 
 
@@ -179,4 +171,50 @@
     </div>
   </div>
 </div>
+
+<script>
+
+  const selectRelation = document.getElementById('sel-relation');
+  const selectAttributes = document.getElementById('sel-attributes');
+
+  String.prototype.replaceAll = function (search, replacement) {
+    var target = this;
+    return target.split(search).join(replacement);
+  };
+
+  selectRelation.onchange = () => {
+    const name = selectRelation.value;
+    fetch('/relation_attributes/' + name)
+      .then(res => res.json())
+      .then(data => {
+        const holder = '<option value="S">S</option>';
+        selectAttributes.innerHTML = data.reduce((accumulator, current) => 
+            accumulator + holder.replaceAll('S', current[0]), '')
+
+        // let html = ''; // alternative way 
+        // data.forEach(attrInfo => html += holder.replaceAll('S', attrInfo[0]));
+        // selectAttributes.innerHTML = html;
+      })
+  }
+
+  const selectOperator = document.getElementById('sel-operator');
+  const textValue = document.getElementById('input-value');
+
+  textValue.onkeypress = e => {
+    if (textValue.value.length > 0 && e.keyCode === 13) { // pressed enter
+      const jsonStr = JSON.stringify({ 
+          'relation': selectRelation.value, 
+          'attribute': selectAttributes.value,
+          'operator': selectOperator.value, 
+          'value': textValue.value
+      });
+      console.log(jsonStr)
+      fetch('/append_predicate/' + jsonStr)
+        .then(res => res.json())
+        .then(res => console.log(res))
+        .catch(err => console.log(err));
+    }
+  }
+
+</script>
 {% endblock %}

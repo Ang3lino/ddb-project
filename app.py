@@ -1,13 +1,21 @@
 from flask import Flask, render_template, request, session, jsonify, flash
+from flaskext.mysql import MySQL 
 
 from my_forms import ProjectionForm
 from pyclasses.predicate import Predicate
 
 import itertools
+import json
 
 app = Flask(__name__)
+app.config.from_pyfile('config.py')
 
-from config import *
+mysql = MySQL()
+mysql.init_app(app)
+
+conn = mysql.connect()
+cursor = conn.cursor()
+
 
 # global variables
 cursor.execute('SHOW TABLES')
@@ -61,35 +69,6 @@ def is_complete(predicates, relation_name):
 def is_minimal(predicate, relation_name):
     return count_rows(predicate, relation_name) > 0
 
-@app.route('/relation_attributes/<name>', methods=['POST', 'GET'])
-def json_attributes(name):
-    attrs = relation_attributes(name)
-    return jsonify(attrs)
-
-@app.route('/vertical', methods=['GET', 'POST'])
-def vertical():
-    projection_form = ProjectionForm()
-    projection_form.relation.choices = [ (r[0], r[0]) for r in relations ]
-    projection_form.selected_attributes.choices = [ (r[0], r[0]) for r in relation_attributes(relations[0][0])]
-    
-    if projection_form.validate_on_submit():
-        relation = projection_form.relation.data
-        fragment_count = projection_form.fragment_count.data 
-        selected_attributes = projection_form.selected_attributes.data # it returns a list
-        print(relation, fragment_count, selected_attributes)
-    return render_template('vertical.html', proj_form=projection_form)
-
-def horizontal_handle_add_predicate(request):
-    form = request.form 
-    attribute = form.get('sel-attribute')           
-    operator = form.get('sel-operator')
-    value = form.get('txt-value')
-    predicate =  Predicate(attribute, operator, value) 
-    if is_minimal(predicate, selected_relation):
-        predicates.append(predicate)
-    else: 
-        flash("La seleccion sobre el predicado da conjunto vacio, no fue agregado.")
-
 def all_combinations(ss):
     return itertools.chain(*map(lambda x: itertools.combinations(ss, x), 
             range(0, len(ss) + 1)))
@@ -120,17 +99,46 @@ def horizontal_controller_handle_build_terms(predicates, selected_relation):
             result.append(str(combination))
     return result
 
+def horizontal_handle_add_predicate(request):
+    form = request.form 
+    attribute = form.get('sel-attribute')           
+    operator = form.get('sel-operator')
+    value = form.get('txt-value')
+    predicate =  Predicate(attribute, operator, value) 
+    if is_minimal(predicate, selected_relation):
+        predicates.append(predicate)
+    else: 
+        flash("La seleccion sobre el predicado da conjunto vacio, no fue agregado.")
+
+@app.route('/relation_attributes/<name>', methods=['POST', 'GET'])
+def json_attributes(name):
+    attrs = relation_attributes(name)
+    return jsonify(attrs)
+
+@app.route('/append_predicate/<jsobject>', methods=['POST', 'GET'])
+def append_predicate(jsobject):
+    obj = json.loads(jsobject) 
+    relation, attribute = obj['relation'], obj['attribute']
+    operator, value     = obj['operator'], obj['value']
+    predicate =  Predicate(attribute, operator, value) 
+    response = dict()
+    if is_minimal(predicate, relation):
+        predicates.append(predicate)
+        response['ok'] = True
+    else: 
+        flash("La seleccion sobre el predicado da conjunto vacio, no fue agregado.")
+        response['ok'] = False
+    return jsonify(response) 
+
 @app.route('/', methods=['GET', 'POST'])
 def horizontal():
     global relation_attr, selected_relation, minterm_predicates
 
+    selected_relation = request.form.get('sel-relation', relations[0][0]) # second argument as default, from the first relation, get the name
+    cursor.execute( "DESC {}".format(selected_relation) )
+    relation_attr = cursor.fetchall()
+
     if request.method == 'POST':
-        if 'id-load-relation' in request.form:
-            selected_relation = request.form.get('sel-relation', relations[0][0]) # second argument as default, from the first relation, get the name
-            cursor.execute( "DESC {}".format(selected_relation) )
-            relation_attr = cursor.fetchall()
-        if 'id-add-predicate' in request.form: # determines which form was submitted
-            horizontal_handle_add_predicate(request)
         if "id-build-minterms" in request.form:
             # minterm_predicates = horizontal_controller_handle_build_terms(predicates, selected_relation)
             minterm_predicates = horizontal_controller_handle_build_terms(
@@ -140,6 +148,19 @@ def horizontal():
     return render_template( 'horizontal.html', relations=relations, relation_attr=relation_attr, 
             selected_relation=selected_relation, minterm_predicates=minterm_predicates,
             predicates=tuple( ( i, str(p) ) for i, p in tuple(enumerate(predicates)) ) )
+
+@app.route('/vertical', methods=['GET', 'POST'])
+def vertical():
+    projection_form = ProjectionForm()
+    projection_form.relation.choices = [ (r[0], r[0]) for r in relations ]
+    projection_form.selected_attributes.choices = [ (r[0], r[0]) for r in relation_attributes(relations[0][0])]
+    
+    if projection_form.validate_on_submit():
+        relation = projection_form.relation.data
+        fragment_count = projection_form.fragment_count.data 
+        selected_attributes = projection_form.selected_attributes.data # it returns a list
+        print(relation, fragment_count, selected_attributes)
+    return render_template('vertical.html', proj_form=projection_form)
 
 if __name__ == "__main__":
     app.run(debug=True)
