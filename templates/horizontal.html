@@ -88,7 +88,7 @@
             <input type="text" class="form-control" id="input-value" placeholder="Ponga el valor" name="txt-value">
           </div>
 
-          <button class="btn btn-secondary btn-sm" name="id-add-predicate">Agregar  </button>
+          <button id="btn-add-predicate" class="btn btn-secondary btn-sm" name="id-add-predicate">Agregar  </button>
         </div>
     </div>
 
@@ -106,7 +106,7 @@
 
       <form action="{{ url_for('horizontal') }}" method="POST">
 
-        <table class="table table-striped">
+        <table class="table table-striped" id="table-predicates">
           <thead>
             <tr>
               <th scope="col">#</th>
@@ -116,7 +116,8 @@
           <tbody>
             {% for p in predicates %}
             <tr>
-              <th scope="row">{{ p.0 }}</th>
+              <!-- <th scope="row">{{ p.0 }}</th> -->
+              <td>{{ p.0 }}</td>
               <td>{{ p.1 }}</td>
             </tr>
             {% endfor %}
@@ -199,22 +200,72 @@
 
   const selectOperator = document.getElementById('sel-operator');
   const textValue = document.getElementById('input-value');
+  const btnAddPredicate = document.getElementById('btn-add-predicate');
 
-  textValue.onkeypress = e => {
-    if (textValue.value.length > 0 && e.keyCode === 13) { // pressed enter
-      const jsonStr = JSON.stringify({ 
-          'relation': selectRelation.value, 
-          'attribute': selectAttributes.value,
-          'operator': selectOperator.value, 
-          'value': textValue.value
-      });
-      console.log(jsonStr)
-      fetch('/append_predicate/' + jsonStr)
-        .then(res => res.json())
-        .then(res => console.log(res))
-        .catch(err => console.log(err));
+  function addPredicate() {
+    const json = { 
+        'relation': selectRelation.value, 
+        'attribute': selectAttributes.value,
+        'operator': selectOperator.value, 
+        'value': textValue.value
+    }
+    const jsonStr = JSON.stringify(json);
+    console.log(jsonStr)
+    fetch('/append_predicate/' + jsonStr)
+      // .then(res => res.json())
+      .then(res => res.json())
+      .then(res => {
+        if (res['ok']) {
+
+        // <table class="table table-striped" id="table-predicates">
+        //   <thead>
+        //     <tr>
+        //       <th scope="col">#</th>
+        //       <th scope="col">Predicado</th>
+        //     </tr>
+        //   </thead>
+        //   <tbody>
+        //     {% for p in predicates %}
+        //     <tr>
+        //       <!-- <th scope="row">{{ p.0 }}</th> -->
+        //       <td>{{ p.0 }}</td>
+        //       <td>{{ p.1 }}</td>
+        //     </tr>
+        //     {% endfor %}
+        //   </tbody>
+        // </table>
+
+          const tbodyPredicates = document.getElementById('table-predicates').tBodies[0]
+          const n = tbodyPredicates.rows.length ;
+          const tr = document.createElement('tr')
+          const td0 = document.createElement('td'), td1 = document.createElement('td')
+          td0.appendChild(document.createTextNode(String(n)))
+          td1.appendChild(document.createTextNode(
+              `${json['attribute']} ${json['operator']} ${json['value']}`));
+          [td0, td1].forEach(td => tr.appendChild(td))
+          tbodyPredicates.appendChild(tr)
+        }
+      })
+      .catch(err => console.log(err));
+  }
+
+  const tablePredicates = document.getElementById("table-predicates");
+
+  btnAddPredicate.onclick = e => {
+    console.dir(tablePredicates)
+    if (textValue.value.length > 0 ) {
+      addPredicate();    
     }
   }
+
+  textValue.onkeypress = e => {
+    console.dir(tablePredicates)
+    if (textValue.value.length > 0 && e.keyCode === 13) { // pressed enter
+      addPredicate();    
+    }
+  }
+
+
 
 </script>
 {% endblock %}
