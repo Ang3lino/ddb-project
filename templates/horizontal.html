@@ -53,43 +53,43 @@
     <div class="col">
       <legend>Definir predicados simples</legend>
 
-        <div class="form-row">
-          <!-- attributes ..................................................... -->
+      <div class="form-row">
+        <!-- attributes ..................................................... -->
 
-          <div class="col">
-            Atributo:
-            <select class="custom-select mr-sm-2" name="sel-attribute" id='sel-attributes'>
-              {% for attr in relation_attr %}
-              <option value="{{attr.0}}">{{attr.0}}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <!-- Operators ...................................................... -->
-          <div class="col">
-            Operador:
-            <select class="custom-select mr-sm-2" name="sel-operator" id='sel-operator'>
-              <option value="=">=</option>
-              <option value="<">
-                <</option> <option value="<=">
-                  <=</option> <option value=">">>
-              </option>
-              <option value=">=">>=</option>
-              <option value="<>">
-                <>
-              </option>
-            </select>
-          </div>
-
-          <div class="col">
-            <!-- more code if you perform label for...  -->
-            <!-- <label for="input-value">Valor </label> -->
-            Valor:
-            <input type="text" class="form-control" id="input-value" placeholder="Ponga el valor" name="txt-value">
-          </div>
-
-          <button id="btn-add-predicate" class="btn btn-secondary btn-sm" name="id-add-predicate">Agregar  </button>
+        <div class="col">
+          Atributo:
+          <select class="custom-select mr-sm-2" name="sel-attribute" id='sel-attributes'>
+            {% for attr in relation_attr %}
+            <option value="{{attr.0}}">{{attr.0}}</option>
+            {% endfor %}
+          </select>
         </div>
+
+        <!-- Operators ...................................................... -->
+        <div class="col">
+          Operador:
+          <select class="custom-select mr-sm-2" name="sel-operator" id='sel-operator'>
+            <option value="=">=</option>
+            <option value="<">
+              <</option> <option value="<=">
+                <=</option> <option value=">">>
+            </option>
+            <option value=">=">>=</option>
+            <option value="<>">
+              <>
+            </option>
+          </select>
+        </div>
+
+        <div class="col">
+          <!-- more code if you perform label for...  -->
+          <!-- <label for="input-value">Valor </label> -->
+          Valor:
+          <input type="text" class="form-control" id="input-value" placeholder="Ponga el valor" name="txt-value">
+        </div>
+
+        <button id="btn-add-predicate" class="btn btn-secondary btn-sm" name="id-add-predicate">Agregar </button>
+      </div>
     </div>
 
 
@@ -104,30 +104,27 @@
 
       <legend>Colocar fragmentos miniterminos</legend>
 
-      <form action="{{ url_for('horizontal') }}" method="POST">
+      <table class="table table-striped" id="table-predicates">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Predicado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in predicates %}
+          <tr>
+            <!-- <th scope="row">{{ p.0 }}</th> -->
+            <td>{{ p.0 }}</td>
+            <td>{{ p.1 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
 
-        <table class="table table-striped" id="table-predicates">
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Predicado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for p in predicates %}
-            <tr>
-              <!-- <th scope="row">{{ p.0 }}</th> -->
-              <td>{{ p.0 }}</td>
-              <td>{{ p.1 }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-
-        <input type="submit" class="btn btn-secondary" name="id-build-minterms" value="Generar miniterminos" />
-
-      </form>
-
+      <button class="btn btn-secondary btn-block" id="btn-build-minterms">
+        Generar miniterminos
+      </button>
     </div>
 
     <!-- cell (1, 1) ============================================================================ -->
@@ -139,21 +136,11 @@
         </div> -->
       <form action="{{ url_for('horizontal') }}">
         <div class="form-group">
-
-          <table class="table table-sm">
-            <thead class="thead-dark">
-              <tr>
-                <th scope="col">Predicado minitermino</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for mp in minterm_predicates %}
-              <tr>
-                <th scope="row"> {{ mp }} </th>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+          <select name="minterm-fragment" id="select-minterm-fragment" class="custom-select mr-sm-2">
+            {% for mp in minterm_predicates %}
+            <option value="{{ mp }}">{{ mp }}</option>
+            {% endfor %}
+          </select>
         </div>
 
         <div class="form-group">
@@ -168,12 +155,38 @@
           <input type="submit" class="btn btn-secondary" name="id-send-site" value="Enviar" />
         </div>
       </form>
-
     </div>
   </div>
 </div>
 
 <script>
+
+  const btnBuildMinterms = document.getElementById('btn-build-minterms');
+  let simplePredicates = new Set();
+  let mintermPredicates = [];
+
+  btnBuildMinterms.onclick = e => {
+    if (document.getElementById('table-predicates').tBodies[0].rows.length > 0) {
+      const json = {
+        'relation': selectRelation.value,
+        'predicates': [...simplePredicates] // convert set into list, we do this since we cannot stringify a set since data is not stored as values
+      }
+      const jsonStr = JSON.stringify(json)
+      console.log(jsonStr)
+      const selectMintermFragment = document.getElementById("select-minterm-fragment")
+      fetch('/build_minterms/' + jsonStr)
+        .then(res => res.json())
+        .then(mintermPredicates => { // [ [] ] list of list where each element contains tree minterms
+          for (let i = 0; i < mintermPredicates.length; ++i) {
+            const option = document.createElement('option')
+            option.value = i // query the index and obtain the minterms selected when sending minterm fragments
+            option.innerHTML = mintermPredicates[i].join(' , ')
+            selectMintermFragment.appendChild(option)
+          }
+        })
+        .catch(err => console.log(err))
+    }
+  }
 
   const selectRelation = document.getElementById('sel-relation');
   const selectAttributes = document.getElementById('sel-attributes');
@@ -189,8 +202,8 @@
       .then(res => res.json())
       .then(data => {
         const holder = '<option value="S">S</option>';
-        selectAttributes.innerHTML = data.reduce((accumulator, current) => 
-            accumulator + holder.replaceAll('S', current[0]), '')
+        selectAttributes.innerHTML = data.reduce((accumulator, current) =>
+          accumulator + holder.replaceAll('S', current[0]), '')
 
         // let html = ''; // alternative way 
         // data.forEach(attrInfo => html += holder.replaceAll('S', attrInfo[0]));
@@ -203,45 +216,27 @@
   const btnAddPredicate = document.getElementById('btn-add-predicate');
 
   function addPredicate() {
-    const json = { 
-        'relation': selectRelation.value, 
-        'attribute': selectAttributes.value,
-        'operator': selectOperator.value, 
-        'value': textValue.value
+    const json = {
+      relation: selectRelation.value,
+      attribute: selectAttributes.value, operator: selectOperator.value, value: textValue.value
     }
     const jsonStr = JSON.stringify(json);
     console.log(jsonStr)
     fetch('/append_predicate/' + jsonStr)
-      // .then(res => res.json())
       .then(res => res.json())
       .then(res => {
         if (res['ok']) {
-
-        // <table class="table table-striped" id="table-predicates">
-        //   <thead>
-        //     <tr>
-        //       <th scope="col">#</th>
-        //       <th scope="col">Predicado</th>
-        //     </tr>
-        //   </thead>
-        //   <tbody>
-        //     {% for p in predicates %}
-        //     <tr>
-        //       <!-- <th scope="row">{{ p.0 }}</th> -->
-        //       <td>{{ p.0 }}</td>
-        //       <td>{{ p.1 }}</td>
-        //     </tr>
-        //     {% endfor %}
-        //   </tbody>
-        // </table>
+          delete json.relation
+          simplePredicates.add(json)
 
           const tbodyPredicates = document.getElementById('table-predicates').tBodies[0]
-          const n = tbodyPredicates.rows.length ;
+          const n = tbodyPredicates.rows.length
           const tr = document.createElement('tr')
           const td0 = document.createElement('td'), td1 = document.createElement('td')
+
           td0.appendChild(document.createTextNode(String(n)))
           td1.appendChild(document.createTextNode(
-              `${json['attribute']} ${json['operator']} ${json['value']}`));
+            `${json['attribute']} ${json['operator']} ${json['value']}`));
           [td0, td1].forEach(td => tr.appendChild(td))
           tbodyPredicates.appendChild(tr)
         }
@@ -253,15 +248,15 @@
 
   btnAddPredicate.onclick = e => {
     console.dir(tablePredicates)
-    if (textValue.value.length > 0 ) {
-      addPredicate();    
+    if (textValue.value.length > 0) {
+      addPredicate();
     }
   }
 
   textValue.onkeypress = e => {
     console.dir(tablePredicates)
     if (textValue.value.length > 0 && e.keyCode === 13) { // pressed enter
-      addPredicate();    
+      addPredicate();
     }
   }
 

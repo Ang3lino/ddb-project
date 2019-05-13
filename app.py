@@ -84,20 +84,6 @@ def remove_repeated_negations(predicates):
 def remove_all(source, targets):
     return list( filter(lambda e: not (e in targets), source) )
 
-def horizontal_controller_handle_build_terms(predicates, selected_relation):
-    # if is_complete(predicates, selected_relation): flash("El conjunto de predicados es completo.") 
-    minterms = []
-    predicates = remove_repeated_negations(predicates)
-    for combination in filter(lambda e: len(e) > 0, all_combinations(predicates)): # remove the empty chain for all combination 
-        minterms.extend(Predicate.minterms( list(combination) ))
-    minterms = [ m for m in minterms if is_minimal(m, selected_relation) ] # remove non relevant minterms 
-    combinations = itertools.combinations(minterms, 3) # returns an iterable object, combinations
-    result = []
-    for combination in combinations:
-        if is_complete(combination, selected_relation): 
-            print(combination)
-            result.append(str(combination))
-    return result
 
 def horizontal_handle_add_predicate(request):
     form = request.form 
@@ -109,6 +95,30 @@ def horizontal_handle_add_predicate(request):
         predicates.append(predicate)
     else: 
         flash("La seleccion sobre el predicado da conjunto vacio, no fue agregado.")
+
+def get_complete_minterm_predicates(predicates, selected_relation):
+    # if is_complete(predicates, selected_relation): flash("El conjunto de predicados es completo.") 
+    minterms = []
+    predicates = remove_repeated_negations(predicates)
+    for combination in filter(lambda e: len(e) > 0, all_combinations(predicates)): # remove the empty chain for all combination 
+        minterms.extend(Predicate.minterms( list(combination) ))
+    minterms = [ m for m in minterms if is_minimal(m, selected_relation) ] # remove non relevant minterms 
+    combinations = itertools.combinations(minterms, 3) # returns an iterable object, combinations
+    result = []
+    for combination in combinations:
+        if is_complete(combination, selected_relation):
+            print(combination)
+            result.append(combination)
+    return result
+
+@app.route('/build_minterms/<relationandpredicates>', methods=['POST', 'GET'])
+def build_minterms(relationandpredicates):
+    obj = json.loads(relationandpredicates) 
+    relation = obj['relation']
+    predicates = [ Predicate(p['attribute'], p['operator'], p['value']) for p in obj['predicates'] ]
+    minterm_predicates = get_complete_minterm_predicates(predicates, relation) 
+    print(minterm_predicates)
+    return jsonify(minterm_predicates)
 
 @app.route('/relation_attributes/<name>', methods=['POST', 'GET'])
 def json_attributes(name):
@@ -139,12 +149,14 @@ def horizontal():
     relation_attr = cursor.fetchall()
 
     if request.method == 'POST':
-        if "id-build-minterms" in request.form:
-            # minterm_predicates = horizontal_controller_handle_build_terms(predicates, selected_relation)
-            minterm_predicates = horizontal_controller_handle_build_terms(
-                    [ Predicate('numero', '<', '3'), Predicate('numero', '<', '6'), 
-                            Predicate('numero', '>=', '3'), Predicate('numero', '>=', '6') ], 
-                    'sala_votacion')
+        # if "id-build-minterms" in request.form:
+        #     # minterm_predicates = horizontal_controller_handle_build_terms(predicates, selected_relation)
+        #     minterm_predicates = horizontal_controller_handle_build_terms(
+        #             [ Predicate('numero', '<', '3'), Predicate('numero', '<', '6'), 
+        #                     Predicate('numero', '>=', '3'), Predicate('numero', '>=', '6') ], 
+        #             'sala_votacion')
+        if "id-send-site" in request.form:
+            pass
     return render_template( 'horizontal.html', relations=relations, relation_attr=relation_attr, 
             selected_relation=selected_relation, minterm_predicates=minterm_predicates,
             predicates=tuple( ( i, str(p) ) for i, p in tuple(enumerate(predicates)) ) )
