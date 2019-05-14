@@ -104,6 +104,13 @@ def append_predicate(jsobject):
         response['ok'] = False
     return jsonify(response) 
 
+@app.route('/send_site/<minterms>', methods=['POST', 'GET'])
+def send_site(minterms):
+    print(minterms)
+    raise
+    req = json.loads(minterms)
+    return jsonify(req)
+
 @app.route('/', methods=['GET', 'POST'])
 def horizontal():
     global relation_attr, selected_relation, minterm_predicates
@@ -113,10 +120,8 @@ def horizontal():
     relation_attr = cursor.fetchall()
     
     # testing
-    db.create_fragment_minterm(db.relation_attributes('sala_votacion'), 'see', 'numero < 3', 'sala_votacion', 'see_s1')
-    if request.method == 'POST':
-        if "id-send-site" in request.form:
-            pass
+    # db.create_fragment_minterm(db.relation_attributes('sala_votacion'), 'see', 'numero < 3', 'sala_votacion', 'see_s1')
+
     return render_template( 'horizontal.html', relations=relations, relation_attr=relation_attr, 
             selected_relation=selected_relation, minterm_predicates=minterm_predicates,
             predicates=tuple( ( i, str(p) ) for i, p in tuple(enumerate(predicates)) ) )

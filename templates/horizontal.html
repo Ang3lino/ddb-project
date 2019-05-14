@@ -134,32 +134,43 @@
           <label for="exampleFormControlTextarea1">Large textarea</label>
           <textarea class="form-control rounded-0" id="exampleFormControlTextarea1" rows="3"></textarea>
         </div> -->
-      <form action="{{ url_for('horizontal') }}">
-        <div class="form-group">
-          <select name="minterm-fragment" id="select-minterm-fragment" class="custom-select mr-sm-2">
-            {% for mp in minterm_predicates %}
-            <option value="{{ mp }}">{{ mp }}</option>
-            {% endfor %}
-          </select>
-        </div>
+      <div class="form-group">
+        <select id="select-minterm-fragment" class="custom-select mr-sm-2">
+          {% for mp in minterm_predicates %}
+          <option value="{{ mp }}">{{ mp }}</option>
+          {% endfor %}
+        </select>
+      </div>
 
-        <div class="form-group">
+      <!-- <div class="form-group">
           <select name="sel-site" class="custom-select mr-sm-2">
             <option value="S1">S1</option>
             <option value="S2">S2</option>
             <option value="S3">S3</option>
           </select>
-        </div>
+        </div> -->
 
-        <div class="form-group">
-          <input type="submit" class="btn btn-secondary btn-block" name="id-send-site" value="Enviar" />
-        </div>
-      </form>
+      <div class="form-group">
+        <button class="btn btn-secondary btn-block" id="id-send-site">
+          Enviar
+        </button>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
+  const btnSendSite = document.getElementById('id-send-site');
+  const selectMintermFragment = document.getElementById("select-minterm-fragment");
+
+  btnSendSite.onclick = e => {
+    const requestObject = mintermPredicates[Number(selectMintermFragment.value)]
+    const requestString = JSON.stringify(requestObject)
+    fetch('/send_site/' + requestString)
+      .then(res => res.json())
+      .then(res => console.log(res))
+      .catch(err => console.log(err) )
+  }
 
   const btnBuildMinterms = document.getElementById('btn-build-minterms');
   let simplePredicates = new Set();
@@ -173,16 +184,17 @@
       }
       const jsonStr = JSON.stringify(json)
       console.log(jsonStr)
-      const selectMintermFragment = document.getElementById("select-minterm-fragment")
       fetch('/build_minterms/' + jsonStr)
         .then(res => res.json())
-        .then(mintermPredicates => { // [ [] ] list of list where each element contains tree minterms
-          for (let i = 0; i < mintermPredicates.length; ++i) {
+        .then(mintermPredicatesResponse => { // [ [ ] ] list of list where each element contains tree minterms
+          mintermPredicates = mintermPredicatesResponse
+          for (let i = 0; i < mintermPredicatesResponse.length; ++i) {
             const option = document.createElement('option')
             option.value = i // query the index and obtain the minterms selected when sending minterm fragments
-            option.innerHTML = mintermPredicates[i].join(' , ')
+            option.innerHTML = mintermPredicatesResponse[i].join(' | ')
             selectMintermFragment.appendChild(option)
           }
+
         })
         .catch(err => console.log(err))
     }
