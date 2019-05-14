@@ -27,47 +27,23 @@ selected_relation = relations[0][0]
 relation_attr = []
 minterm_predicates = []
 
+from db import DbHelper
 
-def relation_attributes(relation_name):
-    """
-    Arguments:
-        relation_name {str}
-    
-    Returns:
-        tuple(tuple()) -- returns a tuple of tuples such that every element is (Field, Type, Null, Key, Default, Extra)
-    """
-    cursor.execute(f'DESC {relation_name}')
-    return cursor.fetchall() 
+db = DbHelper(conn, cursor)
 
-def count_rows(predicate, relation_name):
-    query = f"SELECT COUNT(*) FROM {relation_name} WHERE {str(predicate)} "
-    try:
-        cursor.execute(query)
-        result = cursor.fetchall() # tuple of tuples
-        return result[0][0]
-    except:
-        flash("Hay un error sintactico en su predicado ")
-        return -1
-
-def select_all(cursor, relation_name, predicate=False):
-    query = f"SELECT * FROM {relation_name} " + (
-        f" WHERE {predicate}" if predicate else "" )
-    # print(query)
-    cursor.execute(query)
-    return cursor.fetchall()
 
 def is_complete(predicates, relation_name): 
-    resultset = select_all(cursor, relation_name)
+    resultset = db.select_all(relation_name)
     universe = { t: 0 for t in resultset }
     for predicate in predicates:
-        resultset = select_all(cursor, relation_name, str(predicate))
+        resultset = db.select_all(relation_name, str(predicate))
         for t in resultset: universe[t] += 1
     # for k in universe.keys(): print(k, ' => ', universe[k])
     m = next(iter(universe.values())) # fetch the first value from the dict
     return 0 < m and all(m == value for value in universe.values()) # all have the same probability to be accessed
 
 def is_minimal(predicate, relation_name):
-    return count_rows(predicate, relation_name) > 0
+    return db.count_rows(predicate, relation_name) > 0
 
 def all_combinations(ss):
     return itertools.chain(*map(lambda x: itertools.combinations(ss, x), 
@@ -83,18 +59,6 @@ def remove_repeated_negations(predicates):
 
 def remove_all(source, targets):
     return list( filter(lambda e: not (e in targets), source) )
-
-
-def horizontal_handle_add_predicate(request):
-    form = request.form 
-    attribute = form.get('sel-attribute')           
-    operator = form.get('sel-operator')
-    value = form.get('txt-value')
-    predicate =  Predicate(attribute, operator, value) 
-    if is_minimal(predicate, selected_relation):
-        predicates.append(predicate)
-    else: 
-        flash("La seleccion sobre el predicado da conjunto vacio, no fue agregado.")
 
 def get_complete_minterm_predicates(predicates, selected_relation):
     # if is_complete(predicates, selected_relation): flash("El conjunto de predicados es completo.") 
@@ -122,7 +86,7 @@ def build_minterms(relationandpredicates):
 
 @app.route('/relation_attributes/<name>', methods=['POST', 'GET'])
 def json_attributes(name):
-    attrs = relation_attributes(name)
+    attrs = db.relation_attributes(name)
     return jsonify(attrs)
 
 @app.route('/append_predicate/<jsobject>', methods=['POST', 'GET'])
@@ -147,14 +111,10 @@ def horizontal():
     selected_relation = request.form.get('sel-relation', relations[0][0]) # second argument as default, from the first relation, get the name
     cursor.execute( "DESC {}".format(selected_relation) )
     relation_attr = cursor.fetchall()
-
+    
+    # testing
+    db.create_fragment_minterm(db.relation_attributes('sala_votacion'), 'see', 'numero < 3', 'sala_votacion', 'see_s1')
     if request.method == 'POST':
-        # if "id-build-minterms" in request.form:
-        #     # minterm_predicates = horizontal_controller_handle_build_terms(predicates, selected_relation)
-        #     minterm_predicates = horizontal_controller_handle_build_terms(
-        #             [ Predicate('numero', '<', '3'), Predicate('numero', '<', '6'), 
-        #                     Predicate('numero', '>=', '3'), Predicate('numero', '>=', '6') ], 
-        #             'sala_votacion')
         if "id-send-site" in request.form:
             pass
     return render_template( 'horizontal.html', relations=relations, relation_attr=relation_attr, 
@@ -165,7 +125,7 @@ def horizontal():
 def vertical():
     projection_form = ProjectionForm()
     projection_form.relation.choices = [ (r[0], r[0]) for r in relations ]
-    projection_form.selected_attributes.choices = [ (r[0], r[0]) for r in relation_attributes(relations[0][0])]
+    projection_form.selected_attributes.choices = [ (r[0], r[0]) for r in db.relation_attributes(relations[0][0])]
     
     if projection_form.validate_on_submit():
         relation = projection_form.relation.data
