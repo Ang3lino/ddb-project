@@ -31,7 +31,7 @@ class DbHelper:
         return self.cursor.fetchall()
 
     def create_fragment_minterm(self, attributes, db_src, minterm_predicate, relation, site):
-        self.cursor.execute(f'DROP DATABASE IF EXISTS {site}')
+        self.cursor.execute(f'DROP DATABASE IF NOT EXISTS {site}')
         self.cursor.execute(f'CREATE DATABASE IF NOT EXISTS {site}')
         self.cursor.execute(f'USE {site}')
         self.cursor.execute(f'DROP TABLE IF EXISTS {relation}')
