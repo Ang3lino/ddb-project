@@ -16,6 +16,7 @@ mysql.init_app(app)
 conn = mysql.connect()
 cursor = conn.cursor()
 
+DBNAME = 'see'
 
 # global variables
 cursor.execute('SHOW TABLES')
@@ -104,23 +105,22 @@ def append_predicate(jsobject):
         response['ok'] = False
     return jsonify(response) 
 
-@app.route('/send_site/<minterms>', methods=['POST', 'GET'])
-def send_site(minterms):
-    print(minterms)
-    raise
-    req = json.loads(minterms)
-    return jsonify(req)
+@app.route('/send_site/<dbinfo>', methods=['POST', 'GET'])
+def send_site(dbinfo):  
+    req = json.loads(dbinfo) # dict('minterms': list(str), 'relation': str)    
+    for i, m in enumerate(req['minterms']):
+        db.create_fragment_minterm(DBNAME, m, req['relation'], f'{DBNAME}_s{i}')
+    return jsonify({ 'ok': True })
 
 @app.route('/', methods=['GET', 'POST'])
 def horizontal():
     global relation_attr, selected_relation, minterm_predicates
 
     selected_relation = request.form.get('sel-relation', relations[0][0]) # second argument as default, from the first relation, get the name
-    cursor.execute( "DESC {}".format(selected_relation) )
-    relation_attr = cursor.fetchall()
+    relation_attr = db.get_attributes(selected_relation)
     
     # testing
-    # db.create_fragment_minterm(db.relation_attributes('sala_votacion'), 'see', 'numero < 3', 'sala_votacion', 'see_s1')
+    # db.create_fragment_minterm('see', 'numero < 3', 'sala_votacion', 'see_s1')
 
     return render_template( 'horizontal.html', relations=relations, relation_attr=relation_attr, 
             selected_relation=selected_relation, minterm_predicates=minterm_predicates,

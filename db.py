@@ -30,12 +30,19 @@ class DbHelper:
         self.cursor.execute(query)
         return self.cursor.fetchall()
 
-    def create_fragment_minterm(self, attributes, db_src, minterm_predicate, relation, site):
-        self.cursor.execute(f'DROP DATABASE IF NOT EXISTS {site}')
+    def get_attributes(self, relation): # relation: str
+        self.cursor.execute( "DESC {}".format(relation) )
+        return self.cursor.fetchall()
+
+    def create_fragment_minterm(self, db_src, minterm_predicate, relation, site):
+        attributes = self.get_attributes(relation)
+        self.cursor.execute(f'DROP DATABASE IF EXISTS {site}') # DROP DATABASE [IF EXISTS] db_name
         self.cursor.execute(f'CREATE DATABASE IF NOT EXISTS {site}')
         self.cursor.execute(f'USE {site}')
         self.cursor.execute(f'DROP TABLE IF EXISTS {relation}')
-        metadata = ', '.join(map(lambda d: d[0] + ' ' + d[1], attributes)) # d = (Field, Type, Null, Key), avoid keys, avoid problems with horizontal fragmentation
+        print(attributes)
+        metadata = ', '.join(map(lambda d: str(d[0]) + ' ' + str(d[1]), attributes)) # d = (Field, Type, Null, Key), avoid keys, avoid problems with horizontal fragmentation
+        print(metadata)
         query = 'CREATE TABLE {} ( {} )'.format(relation, metadata)
         self.cursor.execute(query)
         query = f'INSERT INTO {site}.{relation} SELECT * FROM {db_src}.{relation} WHERE {minterm_predicate}'
