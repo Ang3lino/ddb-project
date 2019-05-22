@@ -1,11 +1,14 @@
-from flask import Flask, render_template, request, session, jsonify, flash
+
+from flask import Flask, render_template, request, jsonify
 from flaskext.mysql import MySQL 
 
 from my_forms import ProjectionForm
 from pyclasses.predicate import Predicate
+from db import DbHelper
 
 import itertools
 import json
+
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
@@ -25,12 +28,9 @@ relations = cursor.fetchall()  # relations = cursor.fetchall() # tuple of tuples
 predicates = list() # of (tuple(str, str, str))
 selected_relation = relations[0][0]
 
-relation_attr = []
-minterm_predicates = []
-
-from db import DbHelper
-
 db = DbHelper(conn, cursor)
+relation_attr = db.get_attributes(selected_relation)
+minterm_predicates = []
 
 
 def is_complete(predicates, relation_name): 
@@ -62,7 +62,6 @@ def remove_all(source, targets):
     return list( filter(lambda e: not (e in targets), source) )
 
 def get_complete_minterm_predicates(predicates, selected_relation):
-    # if is_complete(predicates, selected_relation): flash("El conjunto de predicados es completo.") 
     minterms = []
     predicates = remove_repeated_negations(predicates)
     for combination in filter(lambda e: len(e) > 0, all_combinations(predicates)): # remove the empty chain for all combination 
@@ -101,7 +100,6 @@ def append_predicate(jsobject):
         predicates.append(predicate)
         response['ok'] = True
     else: 
-        flash("La seleccion sobre el predicado da conjunto vacio, no fue agregado.")
         response['ok'] = False
     return jsonify(response) 
 
@@ -114,13 +112,6 @@ def send_site(dbinfo):
 
 @app.route('/', methods=['GET', 'POST'])
 def horizontal():
-    global relation_attr, selected_relation, minterm_predicates
-
-    selected_relation = request.form.get('sel-relation', relations[0][0]) # second argument as default, from the first relation, get the name
-    relation_attr = db.get_attributes(selected_relation)
-    
-    # testing
-    # db.create_fragment_minterm('see', 'numero < 3', 'sala_votacion', 'see_s1')
 
     return render_template( 'horizontal.html', relations=relations, relation_attr=relation_attr, 
             selected_relation=selected_relation, minterm_predicates=minterm_predicates,
