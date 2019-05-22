@@ -8,7 +8,7 @@ from db import DbHelper
 
 import itertools
 import json
-
+import fragmentation_tools as frag
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
@@ -28,54 +28,13 @@ relations = cursor.fetchall() # tuple of tuples
 selected_relation = relations[0][0]
 relation_attr = db.get_attributes(selected_relation)
 
-def is_complete(predicates, relation_name): 
-    resultset = db.select_all(relation_name)
-    universe = { t: 0 for t in resultset }
-    for predicate in predicates:
-        resultset = db.select_all(relation_name, str(predicate))
-        for t in resultset: universe[t] += 1
-    # for k in universe.keys(): print(k, ' => ', universe[k])
-    m = next(iter(universe.values())) # fetch the first value from the dict
-    return 0 < m and all(m == value for value in universe.values()) # all have the same probability to be accessed
-
-def is_minimal(predicate, relation_name):
-    return db.count_rows(predicate, relation_name) > 0
-
-def all_combinations(ss):
-    return itertools.chain(*map(lambda x: itertools.combinations(ss, x), 
-            range(0, len(ss) + 1)))
-
-def remove_repeated_negations(predicates):
-    repeated = list()
-    for i, _ in enumerate(predicates):
-        for j in range(i + 1, len(predicates)):
-            if predicates[i].is_negated(predicates[j]):
-                repeated.append(predicates[j])
-    return list( filter(lambda e: not (e in repeated), predicates) )
-
-def remove_all(source, targets):
-    return list( filter(lambda e: not (e in targets), source) )
-
-def get_complete_minterm_predicates(predicates, selected_relation):
-    minterms = []
-    predicates = remove_repeated_negations(predicates)
-    for combination in filter(lambda e: len(e) > 0, all_combinations(predicates)): # remove the empty chain for all combination 
-        minterms.extend(Predicate.minterms( list(combination) ))
-    minterms = [ m for m in minterms if is_minimal(m, selected_relation) ] # remove non relevant minterms 
-    combinations = itertools.combinations(minterms, 3) # returns an iterable object, combinations
-    result = []
-    for combination in combinations:
-        if is_complete(combination, selected_relation):
-            print(combination)
-            result.append(combination)
-    return result
 
 @app.route('/build_minterms/<relationandpredicates>', methods=['POST', 'GET'])
 def build_minterms(relationandpredicates):
     obj = json.loads(relationandpredicates) 
     relation = obj['relation']
     predicates = [ Predicate(p['attribute'], p['operator'], p['value']) for p in obj['predicates'] ]
-    minterm_predicates = get_complete_minterm_predicates(predicates, relation) 
+    minterm_predicates = frag.get_complete_minterm_predicates(db, predicates, relation) 
     print(minterm_predicates)
     return jsonify(minterm_predicates)
 
@@ -91,7 +50,7 @@ def append_predicate(jsobject):
     operator, value     = obj['operator'], obj['value']
     predicate =  Predicate(attribute, operator, value) 
     response = dict()
-    if is_minimal(predicate, relation):
+    if frag.is_minimal(db, predicate, relation):
         response['ok'] = True
     else: 
         response['ok'] = False
@@ -106,7 +65,6 @@ def send_site(dbinfo):
 
 @app.route('/', methods=['GET', 'POST'])
 def horizontal():
-
     return render_template( 
             'horizontal.html', 
             relations=relations, 
