@@ -100,13 +100,10 @@
           </tr>
         </thead>
         <tbody>
-          {% for p in predicates %}
-          <tr>
-            <!-- <th scope="row">{{ p.0 }}</th> -->
-            <td>{{ p.0 }}</td>
-            <td>{{ p.1 }}</td>
-          </tr>
-          {% endfor %}
+          <!-- <tr>
+            <td> p.0 </td>
+            <td> p.1 </td>
+          </tr> -->
         </tbody>
       </table>
 
@@ -124,9 +121,7 @@
         </div> -->
       <div class="form-group">
         <select id="select-minterm-fragment" class="custom-select mr-sm-2">
-          {% for mp in minterm_predicates %}
-          <option value="{{ mp }}">{{ mp }}</option>
-          {% endfor %}
+          <!-- <option value=mp> mp </option> -->
         </select>
       </div>
 

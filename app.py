@@ -19,19 +19,14 @@ mysql.init_app(app)
 conn = mysql.connect()
 cursor = conn.cursor()
 
+db = DbHelper(conn, cursor)
+
 DBNAME = 'see'
 
-# global variables
 cursor.execute('SHOW TABLES')
-relations = cursor.fetchall()  # relations = cursor.fetchall() # tuple of tuples
-
-predicates = list() # of (tuple(str, str, str))
+relations = cursor.fetchall() # tuple of tuples
 selected_relation = relations[0][0]
-
-db = DbHelper(conn, cursor)
 relation_attr = db.get_attributes(selected_relation)
-minterm_predicates = []
-
 
 def is_complete(predicates, relation_name): 
     resultset = db.select_all(relation_name)
@@ -97,7 +92,6 @@ def append_predicate(jsobject):
     predicate =  Predicate(attribute, operator, value) 
     response = dict()
     if is_minimal(predicate, relation):
-        predicates.append(predicate)
         response['ok'] = True
     else: 
         response['ok'] = False
@@ -113,9 +107,12 @@ def send_site(dbinfo):
 @app.route('/', methods=['GET', 'POST'])
 def horizontal():
 
-    return render_template( 'horizontal.html', relations=relations, relation_attr=relation_attr, 
-            selected_relation=selected_relation, minterm_predicates=minterm_predicates,
-            predicates=tuple( ( i, str(p) ) for i, p in tuple(enumerate(predicates)) ) )
+    return render_template( 
+            'horizontal.html', 
+            relations=relations, 
+            relation_attr=relation_attr, 
+            selected_relation=selected_relation
+    )
 
 @app.route('/vertical', methods=['GET', 'POST'])
 def vertical():
