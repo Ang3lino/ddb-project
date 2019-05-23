@@ -4,16 +4,20 @@ class DbHelper:
         self.cursor = cursor 
         self.connection = connection
 
+    def get_primary_keys_from(self, tablename):
+        attrs = self.relation_attributes(tablename)
+        return tuple( filter(lambda a: a[3] == 'PRI', attrs) )
+
     def create_vertical_fragment(self, dbsrc, dbtarget, tablename, attributes):
         '''
         All argument is str type is expected with the exception of attributes which are of type
-        iter(iter(d)) where d = (Field, Type, Null, Key)
+        iter(tuple(d)) where d = (Field, Type, Null, Key)
         '''
         self.cursor.execute(f'DROP DATABASE IF EXISTS {dbtarget}') 
         self.cursor.execute(f'CREATE DATABASE {dbtarget}') 
         metadata = ', '.join(map(lambda d: str(d[0]) + ' ' + str(d[1]), attributes)) 
         self.cursor.execute(f'CREATE TABLE {tablename} ({metadata})') 
-        selectquery = f"SELECT {', '.join(map(labda d: str(d[0])))} FROM {tablename}"
+        selectquery = f"SELECT {', '.join(map(lambda d: str(d[0])))} FROM {tablename}"
         self.cursor.execute(f'INSERT INTO {dbtarget}.{tablename} {selectquery}') 
         self.connection.commit() # call commit after inserting
 
