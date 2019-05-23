@@ -62,17 +62,15 @@
     const btnSendSite = document.getElementById("btn-send-site");
     const btnAddSelection = document.getElementById('btn-add-selection');
 
+    let primaryKeys = []; // update when there is an onchange event on select relation
 
     btnSendSite.onclick = e => {
       const reqObj = {
         site: selSite.value,
+        primaryKeys: primaryKeys,
         queries: valuesFromMultipleSelect(selMultExpressions)
       }
       console.log(reqObj)
-    }
-
-    function valuesFromMultipleSelect(selectObject) {
-      return Array.from(selectObject.selectedOptions).map(option => option.value)
     }
 
     btnAddSelection.onclick = e => {
@@ -86,6 +84,10 @@
       return target.split(search).join(replacement);
     };
 
+    function valuesFromMultipleSelect(selectObject) {
+      return Array.from(selectObject.selectedOptions).map(option => option.value)
+    }
+
     function removeChildren(parent) {
       while (parent.firstChild) parent.removeChild(parent.firstChild)
     }
@@ -93,18 +95,23 @@
     function replaceChildrenSelect(target, names) {
       names.forEach(name => {
         const option = document.createElement('option')
-        option.value = option.text = name
+        option.value = name
+        option.text = name
         target.appendChild(option)
       })
     }
 
     // When the relation select field changes the attributes from this will change too
+    // it updates primaryKeys
     selRelation.onchange = e => {
       removeChildren(selMultAttributes)
       fetch('/relation_attributes/' + selRelation.value)
         .then(res => res.json())
         .then(data => { // Array<Array<String>>
-          replaceChildrenSelect(selMultAttributes, data.map(attrInfo => attrInfo[0]))
+            const getName = d => d[0]
+            const display = data.filter(d => d[3] !== 'PRI' ).map(getName)
+            primaryKeys   = data.filter(d => d[3] === 'PRI' ).map(getName)
+            replaceChildrenSelect(selMultAttributes, display )
         })
     };
 
