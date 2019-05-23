@@ -18,6 +18,16 @@
     </div>
 
     <div class="form-group">
+        Llaves primarias
+
+      <table class="table table-striped" id="table-primary-keys">
+          <!-- <tr>
+            <td> p.0 </td>
+          </tr> -->
+      </table>
+    </div>
+
+    <div class="form-group">
       <label for="selected_attributes">Seleccione atributos </label>
       <select class="form-control" id="selected_attributes" multiple name="selected_attributes">
         {% for attr in relation_attr %}
@@ -62,7 +72,16 @@
     const btnSendSite = document.getElementById("btn-send-site");
     const btnAddSelection = document.getElementById('btn-add-selection');
 
+    const tablePrimaryKeys = document.getElementById('table-primary-keys');
+
+
     let primaryKeys = []; // update when there is an onchange event on select relation
+
+    function addRowPrimaryKey() {
+        tablePrimaryKeys.innerHTML = primaryKeys.reduce(
+            (acc, cur) => acc + `<tr><td> ${cur} </td></tr> `, ''
+        )
+    }
 
     btnSendSite.onclick = e => {
       const reqObj = {
@@ -71,6 +90,7 @@
         queries: valuesFromMultipleSelect(selMultExpressions)
       }
       console.log(reqObj)
+      
     }
 
     btnAddSelection.onclick = e => {
@@ -107,10 +127,11 @@
       removeChildren(selMultAttributes)
       fetch('/relation_attributes/' + selRelation.value)
         .then(res => res.json())
-        .then(data => { // Array<Array<String>>
+            .then(data => { // Array<Array<String>>
             const getName = d => d[0]
             const display = data.filter(d => d[3] !== 'PRI' ).map(getName)
             primaryKeys   = data.filter(d => d[3] === 'PRI' ).map(getName)
+            addRowPrimaryKey()
             replaceChildrenSelect(selMultAttributes, display )
         })
     };
