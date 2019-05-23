@@ -41,6 +41,5 @@ def get_complete_minterm_predicates(db, predicates, selected_relation):
     result = []
     for combination in combinations:
         if is_complete(db, combination, selected_relation):
-            print(combination)
             result.append(combination)
     return result

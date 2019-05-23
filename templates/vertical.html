@@ -5,59 +5,92 @@
 <div class="container">
 
 
-  <form action="" method="POST">
-    <fieldset class="form-group">
-      {{ proj_form.csrf_token }}
+  <fieldset class="form-group">
+    <legend>Agregue las selecciones</legend>
 
-      <legend>Agregue las selecciones</legend>
+    <div class="form-group">
+      <label for="relation">Seleccione una relacion </label>
+      <select class="form-control" id="relation" name="relation">
+        {% for r in relations %}
+        <option value="{{ r.0 }}">{{ r.0 }}</option>
+        {% endfor %}
+      </select>
+    </div>
 
-      <div class="form-group">
-        {{ proj_form.relation.label }}
-        {{ proj_form.relation(class='form-control') }}
-      </div>
+    <div class="form-group">
+      <label for="selected_attributes">Seleccione atributos </label>
+      <select class="form-control" id="selected_attributes" multiple name="selected_attributes">
+        {% for attr in relation_attr %}
+        <option value="{{attr.0}}">{{attr.0}}</option>
+        {% endfor %}
+      </select>
+    </div>
 
-      <div class="form-group">
-        {{ proj_form.fragment_count.label }}
-        {{ proj_form.fragment_count(class='form-control') }}
-      </div>
+    <!-- by applying btn-block in the "button" class it will expand in width  -->
+    <button class="btn btn-primary btn-block" id="btn-add-selection">Agregar seleccion</button> 
+  </fieldset>
 
-      <div class="form-group">
-        {{ proj_form.selected_attributes.label }}
-        {{ proj_form.selected_attributes(class='form-control') }}
-      </div>
 
-      <!-- by applying btn-block in the "button" class it will expand in width  -->
-      <input type="submit" class="btn btn-primary btn-block" value="Agregar seleccion">
-    </fieldset>
-  </form>
+  <fieldset class="form-group">
+    <legend>Expresiones algebraicas</legend>
+    <table class="table table-striped" id="table-expressions">
+        <!-- 
+        <tr> 
+          <td> p.1 </td> 
+        </tr> -->
+    </table>
 
-  <!--  Como se puede apreciar, son archivos estaticos, por lo que los cambios de estos solo se ven reflejados al reiniciar el servidor -->
-  <!-- <script type="text/javascript" src="{{ url_for('static', filename='vertical.js') }}"></script> -->
-  <!-- Esto tambien funciona -->
-  <!-- <script type="text/javascript" src="static/vertical.js"></script> -->
+    <div class="form-group">
+      <select class="form-control table-striped" id="table-expressions" multiple>
+        <!-- <option value="attr.0">attr.0</option> -->
+      </select>
+    </div>
+  </fieldset>
+
 
   <script>
-    let relation = document.getElementById('relation');
-    let availableAttributes = document.getElementById('selected_attributes');
+    const selRelation = document.getElementById('relation');
+    const selMultAttributes = document.getElementById('selected_attributes');
+    const btnAddSelection = document.getElementById('btn-add-selection');
+    const tableExpressions = document.getElementById("table-expressions");
+
+    btnAddSelection.onclick = e => {
+      const row = tableExpressions.insertRow(-1) // insert at the end
+      const cell = row.insertCell(0) // at index 0
+      const attributes = Array.from(selMultAttributes.selectedOptions).map(option => option.value)
+      const query = `SELECT ${attributes.join(', ')} FROM ${selRelation.value}`
+      const text = document.createTextNode(query)
+      cell.appendChild(text)
+    }
 
     String.prototype.replaceAll = function (search, replacement) {
       var target = this;
       return target.split(search).join(replacement);
     };
 
-    // When the relation select field changes the attributes from this will change too
-    relation.onchange = e => {
-      let name = relation.value;
-      fetch('/relation_attributes/' + name).then(res => {
-        res.json().then(data => { // important to call json 
-          let holder = '<option value="S">S</option>', html = '';
-          data.forEach(attrInfo => html += holder.replaceAll('S', attrInfo[0]));
-          availableAttributes.innerHTML = html;
-        })
+    function removeChildren(parent) {
+      while (parent.firstChild) parent.removeChild(parent.firstChild)
+    }
+
+    function replaceChildrenSelect(target, names) {
+      names.forEach(name => {
+        const option = document.createElement('option')
+        option.value = option.text = name
+        target.appendChild(option)
       })
+    }
+
+    // When the relation select field changes the attributes from this will change too
+    selRelation.onchange = e => {
+      removeChildren(selMultAttributes)
+      fetch('/relation_attributes/' + selRelation.value)
+        .then(res => res.json())
+        .then(data => { // Array<Array<String>>
+          replaceChildrenSelect(selMultAttributes, data.map(attrInfo => attrInfo[0]))
+        })
     };
-    
-    </script>
+
+  </script>
 
 </div>
 
