@@ -1,6 +1,6 @@
 
 from flask import Flask, render_template, request, jsonify
-from flaskext.mysql import MySQL 
+from flaskext.mysql import MySQL
 
 from my_forms import ProjectionForm
 from pyclasses.predicate import Predicate
@@ -27,10 +27,10 @@ DBNAME = 'see'
 
 @app.route('/build_minterms/<relationandpredicates>', methods=['POST', 'GET'])
 def build_minterms(relationandpredicates):
-    obj = json.loads(relationandpredicates) 
+    obj = json.loads(relationandpredicates)
     relation = obj['relation']
     predicates = [ Predicate(p['attribute'], p['operator'], p['value']) for p in obj['predicates'] ]
-    minterm_predicates = frag.get_complete_minterm_predicates(db, predicates, relation) 
+    minterm_predicates = frag.get_complete_minterm_predicates(db, predicates, relation)
     # print(minterm_predicates)
     return jsonify(minterm_predicates)
 
@@ -41,22 +41,33 @@ def json_attributes(name):
 
 @app.route('/append_predicate/<jsobject>', methods=['POST', 'GET'])
 def append_predicate(jsobject):
-    obj = json.loads(jsobject) 
+    obj = json.loads(jsobject)
     relation, attribute = obj['relation'], obj['attribute']
     operator, value     = obj['operator'], obj['value']
-    predicate =  Predicate(attribute, operator, value) 
+    predicate =  Predicate(attribute, operator, value)
     response = dict()
     if frag.is_minimal(db, predicate, relation):
         response['ok'] = True
-    else: 
+    else:
         response['ok'] = False
-    return jsonify(response) 
+    return jsonify(response)
 
 @app.route('/send_site/<dbinfo>', methods=['POST', 'GET'])
-def send_site(dbinfo):  
-    req = json.loads(dbinfo) # dict('minterms': list(str), 'relation': str)    
+def send_site(dbinfo):
+    req = json.loads(dbinfo) # dict('minterms': list(str), 'relation': str)
     for i, m in enumerate(req['minterms']):
         db.create_fragment_minterm(DBNAME, m, req['relation'], f'{DBNAME}_s{i}')
+    return jsonify({ 'ok': True })
+
+@app.route('/vertical_send_site/<fraginfo>', methods=['POST', 'GET'])
+def vertical_send_site(fraginfo):
+    '''
+    fraginfo: dict('queries': list(str), 'primaryKeys': list(str), 'site': str)
+
+    '''
+    req = json.loads(fraginfo)
+    print(req)
+
     return jsonify({ 'ok': True })
 
 cursor.execute('SHOW TABLES')
@@ -66,18 +77,19 @@ relation_attr = db.get_attributes(selected_relation)
 
 @app.route('/', methods=['GET', 'POST'])
 def horizontal():
-    return render_template( 
-            'horizontal.html', 
-            relations=relations, 
-            relation_attr=relation_attr, 
+    return render_template(
+            'horizontal.html',
+            relations=relations,
+            relation_attr=relation_attr,
             selected_relation=selected_relation
     )
 
 @app.route('/vertical', methods=['GET', 'POST'])
 def vertical():
+    print(relation_attr)
     return render_template(
             'vertical.html',
-            relations=relations, 
+            relations=relations,
             relation_attr=relation_attr
     )
 
