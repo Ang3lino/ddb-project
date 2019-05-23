@@ -33,34 +33,52 @@
 
   <fieldset class="form-group">
     <legend>Expresiones algebraicas</legend>
-    <table class="table table-striped" id="table-expressions">
-        <!-- 
-        <tr> 
-          <td> p.1 </td> 
-        </tr> -->
-    </table>
 
     <div class="form-group">
-      <select class="form-control table-striped" id="table-expressions" multiple>
+      <select multiple id="select-expressions" class="form-control">
         <!-- <option value="attr.0">attr.0</option> -->
       </select>
     </div>
+
+    <div class="form-group">
+      <select id="select-site"  class="form-control">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+      </select>
+    </div>
+
+    <button class="btn btn-primary btn-block" id="btn-send-site">Enviar</button>
   </fieldset>
 
 
   <script>
     const selRelation = document.getElementById('relation');
+    const selSite = document.getElementById("select-site");
+
     const selMultAttributes = document.getElementById('selected_attributes');
+    const selMultExpressions = document.getElementById("select-expressions");
+
+    const btnSendSite = document.getElementById("btn-send-site");
     const btnAddSelection = document.getElementById('btn-add-selection');
-    const tableExpressions = document.getElementById("table-expressions");
+
+
+    btnSendSite.onclick = e => {
+      const reqObj = {
+        site: selSite.value,
+        queries: valuesFromMultipleSelect(selMultExpressions)
+      }
+      console.log(reqObj)
+    }
+
+    function valuesFromMultipleSelect(selectObject) {
+      return Array.from(selectObject.selectedOptions).map(option => option.value)
+    }
 
     btnAddSelection.onclick = e => {
-      const row = tableExpressions.insertRow(-1) // insert at the end
-      const cell = row.insertCell(0) // at index 0
-      const attributes = Array.from(selMultAttributes.selectedOptions).map(option => option.value)
+      const attributes = valuesFromMultipleSelect(selMultAttributes)
       const query = `SELECT ${attributes.join(', ')} FROM ${selRelation.value}`
-      const text = document.createTextNode(query)
-      cell.appendChild(text)
+      replaceChildrenSelect(selMultExpressions, [query])
     }
 
     String.prototype.replaceAll = function (search, replacement) {
