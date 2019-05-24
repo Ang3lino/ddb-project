@@ -82,6 +82,7 @@ def vertical_send_site(fraginfo):
         db.create_vertical_fragment(
                 DBNAME, 
                 DBNAME + req['site'], 
+                relation,
                 f'{relation}_{time}', 
                 tuple(selected_attrs) + db.get_primary_keys_from(relation))
     return jsonify({ 'ok': True })

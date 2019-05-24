@@ -5,14 +5,14 @@ SECRET_KEY = 'mysecretkey' # this also enables session
 
 # Mysql config
 MYSQL_DATABASE_USER = 'root'
-MYSQL_DATABASE_PASSWORD = ''
+MYSQL_DATABASE_PASSWORD = 'root'
 MYSQL_DATABASE_DB = 'see'
 MYSQL_DATABASE_HOST = 'localhost'
 
 
-# app.config['SECRET_KEY'] = 'mysecretkey' # this also enables session
+# app.config['SECRET_KEY'] = 'mysecretkey' 
 
-# # Mysql config
+# Mysql config
 # app.config['MYSQL_DATABASE_USER'] = 'root'
 # app.config['MYSQL_DATABASE_PASSWORD'] = 'root'
 # app.config['MYSQL_DATABASE_DB'] = 'see'

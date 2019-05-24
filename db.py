@@ -8,7 +8,7 @@ class DbHelper:
         attrs = self.relation_attributes(tablename)
         return tuple( filter(lambda a: a[3] == 'PRI' or a[3] == 'MUL', attrs) )
 
-    def create_vertical_fragment(self, dbsrc, dbtarget, tablename, attributes):
+    def create_vertical_fragment(self, dbsrc, dbtarget, tablesrc, tabletarget, attributes):
         '''
         All argument is str type is expected with the exception of attributes which are of type
         iter(tuple(d)) where d = (Field, Type, Null, Key)
@@ -17,9 +17,12 @@ class DbHelper:
         print('attributes', attributes)
         metadata = ', '.join(map(lambda d: str(d[0]) + ' ' + str(d[1]), attributes)) 
         print('metadata', metadata)
-        self.cursor.execute(f'CREATE TABLE {tablename} ({metadata})') 
-        selectquery = f"SELECT {', '.join(map(lambda d: str(d[0]), attributes))} FROM {tablename}"
-        self.cursor.execute(f'INSERT INTO {dbtarget}.{tablename} {selectquery}') 
+        self.cursor.execute(f'CREATE TABLE {dbtarget}.{tabletarget} ({metadata})') 
+        self.connection.commit()
+        selectquery = f"SELECT {', '.join(map(lambda d: str(d[0]), attributes))} FROM {tablesrc}"
+        query = f'INSERT INTO {dbtarget}.{tabletarget} {selectquery}'
+        print(query)
+        self.cursor.execute(query) 
         self.connection.commit() # call commit after inserting
 
     def relation_attributes(self, relation_name):
