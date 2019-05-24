@@ -74,7 +74,7 @@
 
     const tablePrimaryKeys = document.getElementById('table-primary-keys');
 
-    let queryAttributes = []; // Array< Array< Int > >
+    let attributeIndexes = []; // Array< Array< Int > >
 
     function addPrimaryKeysTable(primaryKeys) {
         tablePrimaryKeys.innerHTML = primaryKeys.reduce(
@@ -85,20 +85,35 @@
     btnSendSite.onclick = e => {
       const reqObj = {
         site: selSite.value,
-        relation: selRelation.value
+        relation: selRelation.value,
+        attributes: valuesFromMultipleSelect(selMultExpressions)
       }
-      // valuesFromMultipleSelect(selMultAttributes)
       console.log(reqObj)
+      fetch('/vertical_send_site/' + JSON.stringify(reqObj))
+        .then(res => res.json())
+        .then(res => {
+          console.log(res)
+        })
+        .catch(err => console.log(err))
     }
 
 
     btnAddSelection.onclick = e => {
-      const attributes = valuesFromMultipleSelect(selMultAttributes)
+      const attributes = textsFromMultipleSelect(selMultAttributes)
       const query = `SELECT ${attributes.join(', ')} FROM ${selRelation.value}`
-      replaceChildrenSelect(selMultExpressions, [query], [query])
+      addChildSelect(selMultExpressions, query, attributeIndexes.length)
+      attributeIndexes.push(attributes)
+    }
+
+    function addChildSelect(target, text, value) {
+      const option = document.createElement('option')
+      option.value = value
+      option.text = text
+      target.appendChild(option)
     }
 
     function replaceChildrenSelect(target, texts, values) {
+      removeChildren(target)
       const minLength = Math.min(texts.length, values.length)
       for (let i = 0; i < minLength; ++i) {
         const option = document.createElement('option')
@@ -117,22 +132,26 @@
       return Array.from(selectObject.selectedOptions).map(option => option.value)
     }
 
+    function textsFromMultipleSelect(selectObject) {
+      return Array.from(selectObject.selectedOptions).map(option => option.text)
+    }
+
     function removeChildren(parent) {
       while (parent.firstChild) parent.removeChild(parent.firstChild)
     }
 
-
     // When the relation select field changes the attributes from this will change too
     selRelation.onchange = e => {
-      removeChildren(selMultAttributes)
       fetch('/relation_attributes/' + selRelation.value)
         .then(res => res.json())
-            .then(data => { // Array<Array<String>>
-            const getName = d => d[0]
-            const display = data.filter(d => d[3] !== 'PRI' ).map(getName)
-            const primaryKeys = data.filter(d => d[3] === 'PRI' ).map(getName)
-            addPrimaryKeysTable(primaryKeys)
-            replaceChildrenSelect(selMultAttributes, display, display)
+        .then(data => { // Array<Array<String>>
+          const first = d => d[0]
+          const isPrimary = d => d[3] === 'PRI' || d[3] === 'MUL'
+          const display = data.filter(d => !isPrimary(d)).map(first)
+          const primaryKeys = data.filter(isPrimary).map(first)
+          const nonPrimaryKeyIndexes = [...data.entries()].filter(t => !isPrimary(t[1])).map(first)
+          addPrimaryKeysTable(primaryKeys)
+          replaceChildrenSelect(selMultAttributes, display, nonPrimaryKeyIndexes)
         })
     };
 

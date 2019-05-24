@@ -1,4 +1,4 @@
-console.log('Corriendo ?')
+console.log('Corriendo horizontal')
 
 const btnSendSite = document.getElementById('id-send-site');
 const selectMintermFragment = document.getElementById("select-minterm-fragment");

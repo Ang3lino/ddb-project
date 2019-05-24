@@ -59,15 +59,31 @@ def send_site(dbinfo):
         db.create_fragment_minterm(DBNAME, m, req['relation'], f'{DBNAME}_s{i}')
     return jsonify({ 'ok': True })
 
+from datetime import datetime
+
 @app.route('/vertical_send_site/<fraginfo>', methods=['POST', 'GET'])
 def vertical_send_site(fraginfo):
     '''
-    fraginfo: dict('queries': list(str), 'primaryKeys': list(str), 'site': str)
-
+    fraginfo: 
+        site: str,
+        relation: str,
+        attributes: list<list<str>>
     '''
     req = json.loads(fraginfo)
-    print(req)
-
+    # def create_vertical_fragment(self, dbsrc, dbtarget, tablename, attributes):
+    relation = req['relation']
+    relation_attrs = db.relation_attributes(relation)
+    print('peticion: ', req)
+    print('atributos de relacion: ', relation_attrs)
+    for indexes in req['attributes']:
+        selected_attrs = tuple(relation_attrs[int(i)] for i in indexes)
+        print('atributosSeleccionados', selected_attrs)
+        time = str(datetime.now()).split(' ')[1].replace(':', '_').replace('.', '__')
+        db.create_vertical_fragment(
+                DBNAME, 
+                DBNAME + req['site'], 
+                f'{relation}_{time}', 
+                tuple(selected_attrs) + db.get_primary_keys_from(relation))
     return jsonify({ 'ok': True })
 
 cursor.execute('SHOW TABLES')
