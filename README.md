@@ -5,14 +5,16 @@ Dependencias:
 -mysql
 -flask flask-mysql (bibliotecas de python)
 
-> sudo apt install mysql-server flask 
-> pip3 install flask flask-mysql
+```
+sudo apt install mysql-server flask 
+pip3 install flask flask-mysql
+```
 si hubo error
 > pip3 install flask flask-mysql --user
 
 #### Requerimientos: 
-Tener una base de datos cargada, para iniciar la base en donde se probo esta aplicacion hacer source db/load_see.sql
-Tener el nombre de usuario y contraseña en config.py
+1. Tener una base de datos cargada, para iniciar la base en donde se probo esta aplicacion hacer **source db/load_see.sql** en mysql.
+2. Tener el nombre de usuario y contraseña en config.py
 
 #### Ejecucion de la aplicacion
 >python app.py 
