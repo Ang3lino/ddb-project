@@ -6,7 +6,7 @@ Dependencias:
 -flask flask-mysql (bibliotecas de python)
 
 ```
-sudo apt install mysql-server flask 
+sudo apt install mysql-server python 
 pip3 install flask flask-mysql
 ```
 si hubo error
@@ -21,5 +21,5 @@ si hubo error
 o bien 
 >python3 app.py
 
-Ahora podra ver la renderizacion de la pagina poniendo 127.0.0.1:5000 en el navegador
+Ahora podra ver la renderizacion de la pagina poniendo 127.0.0.1:5000 en el navegador.
 
