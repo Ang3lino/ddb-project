@@ -1,9 +1,10 @@
 # ddb-project Fragmentador de bases de datos
 
 Dependencias:
--python 3
--mysql
--flask flask-mysql (bibliotecas de python)
+
+- python 3
+- mysql
+- flask flask-mysql (bibliotecas de python)
 
 ```
 sudo apt install mysql-server python 
@@ -17,9 +18,11 @@ si hubo error
 2. Tener el nombre de usuario y contraseña en config.py
 
 #### Ejecucion de la aplicacion
->python app.py 
+> python app.py 
+
 o bien 
->python3 app.py
+
+> python3 app.py
 
 Ahora podra ver la renderizacion de la pagina poniendo 127.0.0.1:5000 en el navegador.
 
